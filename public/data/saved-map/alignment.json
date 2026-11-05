@@ -1,0 +1,562 @@
+{
+  "version": 1,
+  "createdAt": "2026-10-26T14:41:53.743481+00:00",
+  "map": {
+    "name": "robotics_final",
+    "floor": 1,
+    "resolution": 0.03,
+    "origin": [
+      -8.586227,
+      -12.575458,
+      0.0
+    ],
+    "width": 789,
+    "height": 1311,
+    "sha256": "b8ea3d78a5975618184a6836b7d25bde8fe052594be937b98eee2cf850bd9ec8"
+  },
+  "scanSha256": "88b9c7c8d0a9c1aac9ec8a7f21f2859aafa9ae8940d7fb8ed893ce29398584f9",
+  "sourceToViewer": {
+    "sourceCenterXY": [
+      6.547437906265259,
+      11.647540807723999
+    ],
+    "sourceFloorZ": -0.9348990321159363,
+    "scale": 1,
+    "formula": "viewerXYZ=[sourceX-centerX,sourceZ-floorZ,-(sourceY-centerY)]"
+  },
+  "mapToSource": {
+    "yawRadians": -0.1316270980337164,
+    "translationMetres": [
+      2.5160656104140573,
+      4.364880100289241
+    ],
+    "scale": 1,
+    "matrix": [
+      [
+        0.9913496537953067,
+        0.13124733871559288
+      ],
+      [
+        -0.13124733871559288,
+        0.9913496537953067
+      ]
+    ]
+  },
+  "robotFrame": {
+    "reportedPose": "chassis map pose; +X heading, +Z up",
+    "urdfForward": "-Y",
+    "urdfBaseReference": "drive axle midpoint, zero XY offset",
+    "viewerYawFormula": "map theta + registration yaw - pi/2",
+    "baseOffsetMetres": [
+      0,
+      0
+    ],
+    "headingOffsetRadians": 0
+  },
+  "validation": {
+    "heightBand": [
+      0.15,
+      0.5
+    ],
+    "parameters": [
+      -0.1316270980337164,
+      2.5160656104140573,
+      4.364880100289241
+    ],
+    "yawDegrees": -7.541677186886686,
+    "scale": 1,
+    "heldoutCount": 3531,
+    "trainCount": 7710,
+    "heldoutDistancesMetres": {
+      "p25": 0.02465359321665514,
+      "median": 0.05866268509992163,
+      "p75": 0.11874295820231465,
+      "p90": 0.37825918240111905
+    },
+    "within10cm": 0.6879071084678561,
+    "within20cm": 0.8340413480600396,
+    "initialMedianMetres": 0.1235388885311461,
+    "similarityDiagnostic": {
+      "parameters": [
+        -0.13202644476141076,
+        2.488016519042406,
+        4.329274255433225,
+        0.006835186440916302
+      ],
+      "scale": 1.0068585996418897,
+      "heldoutMedian": 0.032967904689844
+    },
+    "kitchenEdgeMedianMetres": 0.06074566747418936,
+    "kitchenEdgeCount": 1766,
+    "scope": "Map occupied-edge to sampled scan geometric agreement, not independently surveyed physical robot accuracy.",
+    "limitations": [
+      "Some obstacles differ between the navigation map and the older 3D scan.",
+      "Physical base-reference offset has not been independently surveyed.",
+      "Dynamic speed matching has not been tested; robot is stationary."
+    ]
+  },
+  "markers": {
+    "avatar": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "avatar",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 1,
+          "x": 0,
+          "y": 0,
+          "z": 0.006
+        },
+        "position": {
+          "x": 10.07,
+          "y": -2.87,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "dexterous": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "dexterous",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 0.91,
+          "x": 0,
+          "y": 0,
+          "z": -0.42
+        },
+        "position": {
+          "x": 3.71,
+          "y": 10.88,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "entrance": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "entrance",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 0.98,
+          "x": 0,
+          "y": 0,
+          "z": 0.18
+        },
+        "position": {
+          "x": -0.85,
+          "y": -3.86,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "exit": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "exit",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 0.04,
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "position": {
+          "x": -0.78,
+          "y": -3.89,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "ghaf_chamber": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "ghaf_chamber",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 0.98,
+          "x": 0,
+          "y": 0,
+          "z": -0.21
+        },
+        "position": {
+          "x": 0.28,
+          "y": 11.17,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "hive_hallway": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "hive_hallway",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 1,
+          "x": 0,
+          "y": 0,
+          "z": 0.09
+        },
+        "position": {
+          "x": 7.46,
+          "y": -3.49,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "humanoid_robot": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "humanoid_robot",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": -0.2,
+          "x": 0,
+          "y": 0,
+          "z": 0.98
+        },
+        "position": {
+          "x": 0.29,
+          "y": 18.86,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "junction_1": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 20,
+      "marker_name": "junction_1",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 0.64,
+          "x": 0,
+          "y": 0,
+          "z": 0.77
+        },
+        "position": {
+          "x": 3.19,
+          "y": -3.52,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "junction_2": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 20,
+      "marker_name": "junction_2",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 0.68,
+          "x": 0,
+          "y": 0,
+          "z": 0.73
+        },
+        "position": {
+          "x": 2.83,
+          "y": 2.93,
+          "z": 0
+        }
+      },
+      "properties": "{}"
+    },
+    "junction_3": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 20,
+      "marker_name": "junction_3",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 0.72,
+          "x": 0,
+          "y": 0,
+          "z": -0.7
+        },
+        "position": {
+          "x": 1.27,
+          "y": 9.96,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "junction_4": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 20,
+      "marker_name": "junction_4",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 0.68,
+          "x": 0,
+          "y": 0,
+          "z": 0.73
+        },
+        "position": {
+          "x": 0.11,
+          "y": 17.78,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "kitchen": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "kitchen",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": -0.35,
+          "x": 0,
+          "y": 0,
+          "z": 0.94
+        },
+        "position": {
+          "x": -1.71,
+          "y": 2.8,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "living_room": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "living_room",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 0.63,
+          "x": 0,
+          "y": 0,
+          "z": -0.78
+        },
+        "position": {
+          "x": -0.09,
+          "y": 0.02,
+          "z": 0
+        }
+      },
+      "properties": "{}"
+    },
+    "logistics": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "logistics",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 0.88,
+          "x": 0,
+          "y": 0,
+          "z": 0.48
+        },
+        "position": {
+          "x": 10.78,
+          "y": 0.38,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "manipulation": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "manipulation",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": -0.18,
+          "x": 0,
+          "y": 0,
+          "z": 0.98
+        },
+        "position": {
+          "x": 4.02,
+          "y": 0.17,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "pc_station_1": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 20,
+      "marker_name": "pc_station_1",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 0.68,
+          "x": 0,
+          "y": 0,
+          "z": 0.74
+        },
+        "position": {
+          "x": -1.48,
+          "y": 5.69,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "pc_station_2": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "pc_station_2",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 0.67,
+          "x": 0,
+          "y": 0,
+          "z": 0.75
+        },
+        "position": {
+          "x": -1.75,
+          "y": 15.29,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "pipes": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "pipes",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 1,
+          "x": 0,
+          "y": 0,
+          "z": -0.0007
+        },
+        "position": {
+          "x": -0.35,
+          "y": 18.76,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "production": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "production",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 0.98,
+          "x": 0,
+          "y": 0,
+          "z": 0.19
+        },
+        "position": {
+          "x": 2.25,
+          "y": 12.13,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "solar_panels": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "solar_panels",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 1,
+          "x": 0,
+          "y": 0,
+          "z": 0.07
+        },
+        "position": {
+          "x": 0.07,
+          "y": 16.85,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "space_service_robot": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "space_service_robot",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": -0.42,
+          "x": 0,
+          "y": 0,
+          "z": 0.91
+        },
+        "position": {
+          "x": 0.68,
+          "y": 16.21,
+          "z": 0
+        }
+      },
+      "properties": ""
+    },
+    "stairs": {
+      "avatar": "\u9ed8\u8ba4",
+      "floor": 1,
+      "key": 0,
+      "marker_name": "stairs",
+      "num": 1,
+      "pose": {
+        "orientation": {
+          "w": 0.49,
+          "x": 0,
+          "y": 0,
+          "z": 0.87
+        },
+        "position": {
+          "x": 2.83,
+          "y": 10.8,
+          "z": 0
+        }
+      },
+      "properties": ""
+    }
+  }
+}

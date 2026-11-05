@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#081b2d" />
+  <meta name="description" content="Explore the Physical AI Lab's segmented point cloud, annotated objects and animated scene graph." />
+  <title>Physical AI Lab · MBZUAI</title>
+  <link rel="icon" href="/brand/mbzuai.jpeg" />
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <a class="brand" href="./" aria-label="Mohamed bin Zayed University of Artificial Intelligence — Physical AI Lab home"><img src="/brand/mbzuai.jpeg" alt="MBZUAI" /><span>Mohamed bin Zayed University<small>of Artificial Intelligence</small></span></a>
+      <div class="page-title"><span data-icon="segments"></span><h1>Physical AI Lab</h1><span class="edition">EXPLORER</span></div>
+      <div class="header-actions">
+        <button class="quiet-button" id="fullscreen-button" aria-label="Enter fullscreen"><span data-icon="expand"></span></button>
+        <button class="export-button" id="export-button" aria-expanded="false" aria-controls="export-menu"><span data-icon="download"></span><span class="button-label">Export data</span></button>
+      </div>
+    </header>
+    <nav class="tool-rail" aria-label="Explorer tools">
+      <button id="cloud-button" class="rail-button active" aria-label="Segmented point cloud" aria-pressed="true" title="Segmented point cloud" disabled><span data-icon="segments"></span><small>Cloud</small></button>
+      <button id="graph-button" class="rail-button" aria-label="Scene graph" aria-pressed="false" title="Scene graph (G)" disabled><span data-icon="graph"></span><small>Graph</small></button>
+      <span class="rail-divider"></span>
+      <button id="labels-button" class="rail-button" aria-label="Toggle object labels" aria-pressed="false" title="Object labels (L)" disabled><span data-icon="labels"></span><small>Labels</small></button>
+      <button id="map-button" class="rail-button" aria-label="Toggle saved 2D map" aria-pressed="false" title="Saved 2D map" disabled><span data-icon="map"></span><small>Map</small></button>
+      <button id="settings-button" class="rail-button" aria-label="Display settings" aria-expanded="false" aria-controls="settings-panel" title="Display settings" disabled><span data-icon="sliders"></span><small>Display</small></button>
+      <button id="fit-button" class="rail-button" aria-label="Fit complete view" title="Fit view (R)" disabled><span data-icon="fit"></span><small>Fit</small></button>
+      <span class="rail-end">3D</span>
+    </nav>
+    <main id="viewport" aria-label="Interactive segmented lab">
+      <canvas id="cloud-canvas" tabindex="0" aria-label="Segmented lab. Drag to orbit, right-drag to pan, scroll to zoom. Click an object to inspect it."></canvas>
+      <div class="scene-caption" aria-hidden="true"><span class="status-dot"></span><span id="view-name">ANNOTATED POINT CLOUD</span></div>
+      <div id="loading" role="status" aria-live="polite"><span class="loading-mark" data-icon="segments"></span><h2>Inside the lab.</h2><p id="load-label">Loading the segmented point cloud…</p><div class="load-track"><span id="load-bar"></span></div><span id="load-percent">0%</span></div>
+    </main>
+    <section id="viewer-ui" class="viewer-ui" aria-label="Segment inspection controls">
+      <aside id="settings-panel" class="glass" aria-label="Display settings" hidden>
+        <div class="popover-title">Display settings<button id="settings-close" aria-label="Close settings">×</button></div>
+        <label for="point-size">Point size <output id="point-size-value">1.0×</output></label>
+        <input id="point-size" type="range" min="0.7" max="3.5" step="0.1" value="1" />
+        <p>Segment colours and unlabelled background can be switched in the Objects panel.</p>
+      </aside>
+    </section>
+    <div id="export-menu" class="glass" aria-label="Download lab data" hidden>
+      <span class="eyebrow">SAVED LAB DATA</span>
+      <a id="download-annotations" download="lab-annotations.json">Object annotations <span>JSON ↗</span></a>
+      <a id="download-graph" download="lab-scene-graph.json">Original scene graph <span>JSON ↗</span></a>
+      <a id="download-manifest" download="lab-segments-manifest.json">Point-cloud manifest <span>JSON ↗</span></a>
+    </div>
+    <footer class="status-bar"><span><i class="status-dot"></i><span id="data-status">Preparing the lab</span></span><span class="navigation-hint">Drag to orbit <b>·</b> Right-drag to pan <b>·</b> Scroll to zoom</span><span class="status-signature">PHYSICAL AI LAB / MBZUAI</span></footer>
+    <div id="error-state" class="glass" role="alert" hidden><h2>Unable to open the lab</h2><p id="error-copy"></p><button id="retry-button" class="export-button">Try again</button></div>
+    <div id="toast" role="status" hidden></div>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

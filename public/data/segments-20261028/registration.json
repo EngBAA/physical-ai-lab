@@ -1,0 +1,68 @@
+{
+  "sourceToScan": [
+    [
+      -0.00957110983300417,
+      0.999954195832651,
+      -9.656162028214e-06,
+      4.684539904847265
+    ],
+    [
+      -0.9999541876744648,
+      -0.009571110991064856,
+      -0.000128010538102026,
+      13.56771364324551
+    ],
+    [
+      -0.00012809709488445888,
+      8.430516736975973e-06,
+      0.9999999917600316,
+      -0.033752767235263464
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "sourceToViewer": [
+    [
+      -0.00957110983300417,
+      0.999954195832651,
+      -9.656162028214e-06,
+      -1.862898001417994
+    ],
+    [
+      -0.00012809709488445888,
+      8.430516736975973e-06,
+      0.9999999917600316,
+      0.9011462648806728
+    ],
+    [
+      0.9999541876744648,
+      0.009571110991064856,
+      0.000128010538102026,
+      -1.9201728355215106
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "scale": 1,
+  "method": "FPFH global rigid registration followed by robust point-to-plane ICP; independent 50 cm validation tiles",
+  "fittingPoints": 871412,
+  "heldoutPoints": 512880,
+  "heldoutMedianMetres": 0.00882859496743749,
+  "heldoutP90Metres": 0.0341327336929639,
+  "heldoutWithin5cm": 0.9167134612384963,
+  "heldoutWithin10cm": 0.9417056621431914,
+  "sourcePointCount": 13688806,
+  "sourcePointsSha256": "ae7ea5419b4745c1fb800bd444de9eff8084f49ad2755f07a3882c5dbde3dd74",
+  "archiveSha256": "16b7fb0fafff309ce30c9505a2067bad13f57c22914df9d26eecd7c8b33b4748",
+  "labScanSha256": "88b9c7c8d0a9c1aac9ec8a7f21f2859aafa9ae8940d7fb8ed893ce29398584f9",
+  "mapAlignmentSha256": "38ee5c809f84f1de3fd90ecfb1edf80a161c878f1f594a75d743f24c1546cf88",
+  "note": "Geometric registration to the saved scan, not an independent measurement of physical robot localization."
+}

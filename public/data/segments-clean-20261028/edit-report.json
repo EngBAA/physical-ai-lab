@@ -1,0 +1,1177 @@
+{
+  "edit": "Captured RealMan removed; live robot unchanged",
+  "removalBoxSourceXYZ": [
+    [
+      0.72,
+      6.9,
+      -1.0848990321159362
+    ],
+    [
+      1.63,
+      7.78,
+      0.7451009678840637
+    ]
+  ],
+  "sourceManifestSha256": "f844ff7b801f1a1c67761b0c33c972b4dad50e19044726ad5fe3733410de2fe9",
+  "originalAnnotationSha256": "af25fedc5ea28ff017774587c915637e12b73fb74d43feacefeb10892c92bec9",
+  "removedPoints": 22054,
+  "removedOverlapMemberships": 0,
+  "inferredFloorPoints": 14396,
+  "donorTranslation": [
+    -0.925,
+    -0.25,
+    -0.0
+  ],
+  "floorPlaneSourceXYZ": [
+    0.0009460749433099024,
+    0.0027896535231677483,
+    -0.9480785507034574
+  ],
+  "floorPointSpacingMetres": 0.0075,
+  "floorColorFeatherMetres": 0.1,
+  "floorMethod": "Inferred plane fitted to bordering observed floor, adjacent wood colours, floor label 248",
+  "originalAnnotationsUnchanged": true,
+  "registrationUnchanged": true,
+  "allRetainedPointValuesExact": true,
+  "chunks": [
+    {
+      "url": "points-000.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-001.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-002.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-003.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-004.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-005.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-006.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-007.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-008.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-009.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-010.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-011.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-012.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-013.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-014.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-015.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-016.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-017.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-018.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-019.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-020.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-021.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-022.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-023.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-024.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-025.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-026.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-027.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-028.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-029.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-030.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-031.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-032.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-033.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-034.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-035.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-036.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-037.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-038.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-039.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-040.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-041.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-042.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-043.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-044.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-045.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-046.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-047.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-048.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-049.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-050.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-051.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-052.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-053.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-054.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-055.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-056.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-057.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-058.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-059.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-060.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-061.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-062.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-063.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-064.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-065.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-066.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-067.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-068.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-069.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-070.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-071.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-072.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-073.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-074.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-075.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-076.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-077.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-078.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-079.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-080.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-081.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-082.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-083.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-084.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-085.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-086.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-087.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-088.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-089.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-090.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-091.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-092.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-093.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-094.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-095.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-096.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-097.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-098.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-099.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-100.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-101.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-102.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-103.bin",
+      "removed": 1634,
+      "overlap": false,
+      "removedById": {
+        "248": 1634
+      },
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-104.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-105.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-106.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-107.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-108.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-109.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-110.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-111.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-112.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-113.bin",
+      "removed": 20420,
+      "overlap": false,
+      "removedById": {
+        "0": 15502,
+        "248": 4918
+      },
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-114.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-115.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-116.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-117.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-118.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-119.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-120.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-121.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-122.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-123.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-124.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-125.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-126.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-127.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-128.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-129.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-130.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-131.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-132.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-133.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-134.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-135.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-136.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-137.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-138.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-139.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-140.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-141.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-142.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-143.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-144.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-145.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-146.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-147.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-148.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-149.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-150.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-151.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-152.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-153.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-154.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-155.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-156.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-157.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-158.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-159.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "points-160.bin",
+      "removed": 0,
+      "overlap": false,
+      "removedById": {},
+      "retainedValuesExact": true
+    },
+    {
+      "url": "overlaps.bin",
+      "removed": 0,
+      "overlap": true,
+      "removedById": {},
+      "retainedValuesExact": true
+    }
+  ]
+}

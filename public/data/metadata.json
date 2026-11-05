@@ -1,0 +1,107 @@
+{
+  "segments": {
+    "url": "/data/segments-clean-20261028/manifest.json",
+    "coordinateFrame": "viewer-y-up",
+    "sourceSha256": "88b9c7c8d0a9c1aac9ec8a7f21f2859aafa9ae8940d7fb8ed893ce29398584f9",
+    "pointCount": 13681148,
+    "objectCount": 248,
+    "registrationUrl": "/data/segments-20261028/registration.json",
+    "sha256": "ebab0a5573a09c74055b8cf7e8a63d247bc02ab50281ec14dde05cab1a7541a2"
+  },
+  "transform": {
+    "sourceCenterXY": [
+      6.547437906265259,
+      11.647540807723999
+    ],
+    "sourceFloorZ": -0.9348990321159363,
+    "scale": 1,
+    "formula": "viewerXYZ=[sourceX-centerX,sourceZ-floorZ,-(sourceY-centerY)]"
+  },
+  "walkability": {
+    "url": "/data/physical-ai-88b9c7c8-walkability.bin",
+    "width": 129,
+    "height": 241,
+    "cellSize": 0.16,
+    "origin": [
+      -10.24,
+      -19.2
+    ],
+    "originXZ": [
+      -10.24,
+      -19.2
+    ],
+    "axis": "row-major: index=row*width+column; x=origin[0]+(column+.5)*cellSize; z=origin[1]+(row+.5)*cellSize",
+    "values": {
+      "0": "blocked or unobserved",
+      "1": "walkable observed ground floor"
+    },
+    "walkableCells": 10108,
+    "walkableAreaM2": 258.76,
+    "purpose": "Interactive avatar only; inferred ground floor, not a robot navigation map",
+    "floorPointThreshold": 40,
+    "obstaclePointThreshold": 64,
+    "obstacleInflationM": 0.16,
+    "observedFloorHeightM": [
+      -0.065,
+      0.065
+    ],
+    "obstacleHeightM": [
+      0.2,
+      1.75
+    ],
+    "spawnClearanceM": 0.64,
+    "initialForwardClearDistanceM": 12.96
+  },
+  "minimap": {
+    "url": "/data/physical-ai-88b9c7c8-minimap.png",
+    "width": 512,
+    "height": 320,
+    "plot": {
+      "left": 182.94545131843483,
+      "top": 20.0,
+      "width": 146.10909736313036,
+      "height": 280.0
+    },
+    "boundsXZ": {
+      "min": [
+        -9.921428442001343,
+        -19.013189554214478
+      ],
+      "max": [
+        9.921428442001343,
+        19.013189554214478
+      ]
+    },
+    "pixelFormula": "u=plot.left+(x-minX)/(maxX-minX)*plot.width; v=plot.top+(z-minZ)/(maxZ-minZ)*plot.height",
+    "purpose": "Ground-floor HUD projection; does not limit the complete displayed cloud"
+  },
+  "bounds": {
+    "min": [
+      -9.921428680419922,
+      -0.031891584396362305,
+      -19.0131893157959
+    ],
+    "max": [
+      9.921428680419922,
+      2.3984434604644775,
+      19.0131893157959
+    ],
+    "size": [
+      19.842857360839844,
+      2.43033504486084,
+      38.0263786315918
+    ],
+    "center": [
+      0.0,
+      1.1832759380340576,
+      0.0
+    ]
+  },
+  "sourceProvenance": {
+    "sha256": "88b9c7c8d0a9c1aac9ec8a7f21f2859aafa9ae8940d7fb8ed893ce29398584f9"
+  },
+  "savedMap": {
+    "alignmentUrl": "/data/saved-map/alignment.json",
+    "overlayUrl": "/data/saved-map/map-overlay.png"
+  }
+}
