@@ -11,6 +11,19 @@ object previews, annotation downloads and an animated lab hierarchy. The graph
 retains the established display configuration of 245 objects, nine areas and
 five chambers. Its floor connectivity and saved spatial links can be inspected.
 
+DOWNLOAD THE ANIMATED SCENE GRAPH
+
+Open Scene Graph, select a label, then press the download-arrow button at the
+right of the animation controls. It saves a 1920 x 1080 video (WebM, or MP4 when
+that is the browser's supported format). The 5.2-second graph animation replays
+with that selection and its highlighted connections, then holds the complete
+graph for two seconds. Text labels and the current scan, map and spatial-link
+visibility settings are included. The current viewing direction is retained,
+with framing widened to include the whole graph. Your original camera, selection
+and playback position are restored afterward. Keep the tab visible while it
+records; Cancel or Escape discards the recording. This is a visual video export;
+the separate Export menu continues to offer the original data files.
+
 Data snapshot: 5 November 2026. The point cloud, source annotations and original
 scene graph are unchanged from the local standalone viewer. Large saved GIF
 previews are encoded as animated WebP at quality 90 for GitHub Pages. Dimensions,

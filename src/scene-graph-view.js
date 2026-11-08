@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { buildSceneGraph, revealAt, viewerToMap } from './scene-graph-model.js';
+import { recordSceneGraph, saveRecording } from './scene-graph-export.js';
 
 const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
 const btn=(text,fn,cls)=>{const n=el('button',text,cls);n.type='button';n.onclick=fn;return n;};
@@ -34,7 +35,9 @@ export class SceneGraphView {
       this.down=null;
     });
     listen(viewer.canvas,'pointercancel',()=>{this.down=null;});
-    listen(window,'keydown',e=>{if(this.active&&e.key==='Escape'){e.preventDefault();this.close();}});
+    listen(window,'keydown',e=>{if(this.active&&e.key==='Escape'&&!this.exportController&&!this.exportDialog.open){e.preventDefault();this.close();}});
+    listen(document,'visibilitychange',()=>{if(document.hidden)this.exportController?.abort(new Error('Recording cancelled because this tab was hidden. Keep the tab open and try again.'));});
+    listen(viewer.canvas,'webglcontextlost',()=>this.exportController?.abort(new Error('The graphics context was interrupted. Reload the page and try again.')));
     this.createUI();viewer._sceneGraph=this;
   }
 
@@ -55,10 +58,22 @@ export class SceneGraphView {
     this.seek=el('input');this.seek.type='range';this.seek.min='0';this.seek.max='1000';this.seek.value='0';this.seek.setAttribute('aria-label','Scene graph animation progress');
     this.seek.oninput=()=>{this.progress=Number(this.seek.value)/1000;this.playing=false;this.dirty=true;this.updatePlayer();};
     this.status=el('span','Loading…','graph-status');this.status.setAttribute('role','status');
-    this.player.append(this.replay,this.play,btn('Fit',()=>this.resize(true)),this.seek,this.status);
+    this.download=btn('',()=>this.downloadAnimation(),'graph-download');this.download.disabled=true;
+    this.download.setAttribute('aria-label','Download scene graph animation');
+    this.download.title='Download animation with the current selection (video)';
+    this.download.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg>';
+    this.player.append(this.replay,this.play,btn('Fit',()=>this.resize(true)),this.seek,this.status,this.download);
+    this.exportDialog=el('dialog',undefined,'graph-export-dialog');
+    this.exportDialog.setAttribute('aria-labelledby','graph-export-title');
+    const exportTitle=el('h2','Download graph animation');exportTitle.id='graph-export-title';
+    this.exportMessage=el('p');this.exportMessage.setAttribute('role','status');
+    this.exportProgress=el('progress');this.exportProgress.max=1;this.exportProgress.value=0;this.exportProgress.setAttribute('aria-label','Animation recording progress');
+    this.exportCancel=btn('Cancel',()=>{if(this.exportController)this.exportController.abort(new DOMException('Recording cancelled.','AbortError'));else this.exportDialog.close();});
+    this.exportDialog.addEventListener('cancel',e=>{if(this.exportController){e.preventDefault();this.exportController.abort(new DOMException('Recording cancelled.','AbortError'));}});
+    this.exportDialog.append(exportTitle,this.exportMessage,this.exportProgress,this.exportCancel);
     this.exit=btn('Back to lab ↗',()=>this.close(),'graph-exit glass');
     this.help=el('p','Drag to orbit · Scroll to zoom · Click a node to inspect','graph-help');
-    this.root.append(this.nodeLabels,options,this.detail,this.player,this.exit,this.help);
+    this.root.append(this.nodeLabels,options,this.detail,this.player,this.exit,this.help,this.exportDialog);
     document.getElementById('viewer-ui').append(this.root);
   }
 
@@ -86,15 +101,17 @@ export class SceneGraphView {
       if(!this.active)return;
       this.ui.count.textContent=`${this.model.stats.objects} labels`;
       this.syncScanSelection();this.restart();this.resize(true);
+      this.download.disabled=false;
       if(this.selected?.kind==='object')this.ui.preview.show(this.detail.querySelector('h3'),this.layer.objects.get(this.selected.objectId),this.layer);
     } catch(error) {
-      this.layer=null;this.playing=false;this.status.textContent=error.message;
+      this.layer=null;this.playing=false;this.download.disabled=true;this.status.textContent=error.message;
       console.error('[Scene graph]',error);
     }
   }
 
   close() {
     if(!this.active)return;
+    this.exportController?.abort(new DOMException('Recording cancelled.','AbortError'));this.exportDialog.close();
     this.active=false;this.playing=false;this.controls.enabled=false;this.root.hidden=true;
     this.ui.preview.hide();
     // The overlap GPU geometry is shared. Restore the lab's own selection.
@@ -246,6 +263,7 @@ export class SceneGraphView {
   }
 
   render(dt) {
+    if(this.exportController)return;
     if(!this.active)return;this.resize();
     if(this.model&&this.nodeMeshes) {
       if(this.playing){this.progress=Math.min(1,this.progress+dt/5.2);this.dirty=true;if(this.progress===1)this.playing=false;this.updatePlayer();}
@@ -375,6 +393,27 @@ export class SceneGraphView {
   replaceSelection(edges) {
     const old=this.selectionLines;this.scene.remove(old);this.owned.delete(old.geometry);this.owned.delete(old.material);old.geometry.dispose();old.material.dispose();
     this.selectionLines=this.makeLines(edges,'selection',.9);
+  }
+
+  async downloadAnimation() {
+    if(!this.active||!this.model||this.download.disabled||this.exportController)return;
+    const controller=this.exportController=new AbortController(),playing=this.playing;
+    this.playing=false;this.download.disabled=true;
+    this.exportProgress.hidden=false;this.exportProgress.value=0;this.exportCancel.textContent='Cancel';
+    const selection=this.selected?` “${this.selected.label}” highlighted`:'the full lab hierarchy';
+    this.exportMessage.textContent=`Recording ${selection}. The whole graph will replay and hold at the end. Keep this tab open.`;
+    this.exportDialog.showModal();
+    try {
+      const result=await recordSceneGraph(this,{signal:controller.signal,onProgress:value=>{this.exportProgress.value=value;}});
+      if(controller.signal.aborted)return;
+      saveRecording(result);this.exportDialog.close();
+    } catch(error) {
+      if(error.name==='AbortError'||!this.active||this.disposed)this.exportDialog.close();
+      else {this.exportMessage.textContent=error.message;this.exportProgress.hidden=true;this.exportCancel.textContent='Close';}
+    } finally {
+      this.exportController=null;this.download.disabled=!this.model||!this.layer;
+      if(!this.disposed){this.playing=this.active&&playing;this.dirty=true;this.updatePlayer();}
+    }
   }
 
   clearScene() {
