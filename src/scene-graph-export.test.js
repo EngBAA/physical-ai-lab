@@ -20,7 +20,7 @@ test('export fits the entire animation from a zoomed/panned camera without movin
   const original = camera.clone();
   const nodes = [{ anchor: [-18, 0, -12], position: [-18, 12, -12] }, { anchor: [20, 2, 15], position: [20, 25, 15] }];
   const points = nodes.map(node => new THREE.Vector3(...node.position));
-  const fitted = recordingCamera({ camera, fitPoints: points, model: { nodes } });
+  const fitted = recordingCamera({ camera, fitPoints: points, model: { nodes } }, 1456);
   for (const node of nodes) for (const key of ['anchor', 'position']) {
     const p = new THREE.Vector3(...node[key]).project(fitted);
     assert.ok(Math.abs(p.x) < .8 && Math.abs(p.y) < .78 && p.z > -1 && p.z < 1);

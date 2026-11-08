@@ -401,7 +401,7 @@ export class SceneGraphView {
     this.playing=false;this.download.disabled=true;
     this.exportProgress.hidden=false;this.exportProgress.value=0;this.exportCancel.textContent='Cancel';
     const selection=this.selected?` “${this.selected.label}” highlighted`:'the full lab hierarchy';
-    this.exportMessage.textContent=`Recording ${selection}. The whole graph will replay and hold at the end. Keep this tab open.`;
+    this.exportMessage.textContent=`Recording ${selection}${this.selected?' with its details panel and object preview':''}. The whole graph will replay and hold at the end. Keep this tab open.`;
     this.exportDialog.showModal();
     try {
       const result=await recordSceneGraph(this,{signal:controller.signal,onProgress:value=>{this.exportProgress.value=value;}});

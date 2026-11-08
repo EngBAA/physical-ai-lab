@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { revealAt } from './scene-graph-model.js';
+import { prepareDetailPanel } from './scene-graph-detail-export.js';
 
 const WIDTH = 1920, HEIGHT = 1080, REPLAY_SECONDS = 5.2, HOLD_SECONDS = 2;
 
@@ -15,9 +16,9 @@ export function recordingName(label, type, date = new Date()) {
 }
 
 /** Retain the viewing direction, but include every node, tether and scan bound. */
-export function recordingCamera(view) {
+export function recordingCamera(view, width = WIDTH) {
   const camera = view.camera.clone();
-  camera.aspect = WIDTH / HEIGHT;
+  camera.aspect = width / HEIGHT;
   const points = [...view.fitPoints, ...view.model.nodes.map(node => new THREE.Vector3(...node.anchor))];
   const bounds = new THREE.Box3().setFromPoints(points), center = bounds.getCenter(new THREE.Vector3());
   const direction = camera.getWorldDirection(new THREE.Vector3()).negate();
@@ -44,7 +45,7 @@ function nextFrame(signal) {
 }
 
 /** Canvas streams omit HTML overlays, so paint the same node labels explicitly. */
-function drawLabels(ctx, view, camera) {
+function drawLabels(ctx, view, camera, graphWidth) {
   const point = new THREE.Vector3(), callouts = [], labels = [];
   for (const { node } of view.labelEntries) {
     const selected = view.selected?.id === node.id;
@@ -55,9 +56,9 @@ function drawLabels(ctx, view, camera) {
     const font = `${node.kind === 'chamber' ? 600 : 400} ${size}px "Manrope Variable", sans-serif`;
     ctx.font = font;
     const width = Math.min(300, ctx.measureText(node.label).width + 22), height = size + 18;
-    const x = (point.x + 1) * WIDTH / 2, y = (1 - point.y) * HEIGHT / 2;
+    const x = (point.x + 1) * graphWidth / 2, y = (1 - point.y) * HEIGHT / 2;
     const entry = { node, selected, font, width, height, x, y,
-      left: Math.max(12, Math.min(WIDTH - width - 12, x - width / 2)), top: y - height - 10 };
+      left: Math.max(12, Math.min(graphWidth - width - 12, x - width / 2)), top: y - height - 10 };
     if (node.kind === 'chamber' || node.kind === 'area') callouts.push(entry);
     else labels.push(entry);
   }
@@ -92,26 +93,37 @@ function drawLabels(ctx, view, camera) {
 export async function recordSceneGraph(view, { signal, onProgress }) {
   const mimeType = recordingFormat();
   if (!mimeType || !HTMLCanvasElement.prototype.captureStream) throw new Error('Animation download is unavailable in this browser. Please use a current Chrome, Edge, Firefox or Safari browser.');
-  const renderer = view.viewer.renderer, camera = recordingCamera(view);
-  const target = new THREE.WebGLRenderTarget(WIDTH, HEIGHT);
+  const graphWidth = view.selected && !view.detail.hidden ? WIDTH - 464 : WIDTH;
+  const renderer = view.viewer.renderer, camera = recordingCamera(view, graphWidth);
+  const target = new THREE.WebGLRenderTarget(graphWidth, HEIGHT);
   target.texture.colorSpace = THREE.SRGBColorSpace;
   const canvas = document.createElement('canvas');canvas.width = WIDTH;canvas.height = HEIGHT;
   const ctx = canvas.getContext('2d', { alpha: false });
-  const raw = document.createElement('canvas');raw.width = WIDTH;raw.height = HEIGHT;
+  // Publish only fully composed frames. Async preview decoding must not let
+  // captureStream sample the graph before the details panel has been painted.
+  const output = document.createElement('canvas');output.width = WIDTH;output.height = HEIGHT;
+  const outputCtx = output.getContext('2d', { alpha: false });
+  const raw = document.createElement('canvas');raw.width = graphWidth;raw.height = HEIGHT;
   const rawCtx = raw.getContext('2d', { alpha: false });
-  const pixels = new Uint8Array(WIDTH * HEIGHT * 4), frame = new ImageData(new Uint8ClampedArray(pixels.buffer), WIDTH, HEIGHT);
-  let stream, recorder, watchdog;
+  const pixels = new Uint8Array(graphWidth * HEIGHT * 4), frame = new ImageData(new Uint8ClampedArray(pixels.buffer), graphWidth, HEIGHT);
+  let stream, recorder, watchdog, panel;
   const chunks = [], originalProgress = view.progress;
-  const capture = progress => {
+  const capture = async (progress, seconds = 0) => {
     view.progress = progress;view.updateGeometry();
     const previous = renderer.getRenderTarget();
     try {
       renderer.setRenderTarget(target);renderer.render(view.scene, camera);
-      renderer.readRenderTargetPixels(target, 0, 0, WIDTH, HEIGHT, pixels);
+      renderer.readRenderTargetPixels(target, 0, 0, graphWidth, HEIGHT, pixels);
     } finally { renderer.setRenderTarget(previous); }
     rawCtx.putImageData(frame, 0, 0);
+    ctx.fillStyle = '#061522';ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.save();ctx.translate(0, HEIGHT);ctx.scale(1, -1);ctx.drawImage(raw, 0, 0);ctx.restore();
-    drawLabels(ctx, view, camera);
+    drawLabels(ctx, view, camera, graphWidth);
+    if (panel) {
+      const scale = Math.min(416 / panel.width, (HEIGHT - 48) / panel.height);
+      await panel.draw(ctx, WIDTH - 24 - panel.width * scale, 24, scale, seconds);
+    }
+    outputCtx.drawImage(canvas, 0, 0);
   };
   const controller = new AbortController();
   const abort = () => controller.abort(signal.reason);
@@ -121,11 +133,13 @@ export async function recordSceneGraph(view, { signal, onProgress }) {
   const abortRecording = () => rejectStopped?.(controller.signal.reason);
   controller.signal.addEventListener('abort', abortRecording, { once: true });
   try {
+    watchdog = setTimeout(() => controller.abort(new Error('Animation recording timed out. Please try again.')), 30000);
     controller.signal.throwIfAborted();
     await document.fonts.ready;
     controller.signal.throwIfAborted();
-    capture(0);
-    stream = canvas.captureStream(30);
+    panel = await prepareDetailPanel(view, controller.signal);
+    await capture(0);
+    stream = output.captureStream(30);
     recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8_000_000 });
     const stopped = new Promise((resolve, reject) => {
       rejectStopped = reject;
@@ -135,15 +149,14 @@ export async function recordSceneGraph(view, { signal, onProgress }) {
     });
     // Attach immediately so cancellation during capture cannot leak a rejection.
     stopped.catch(() => {});
-    watchdog = setTimeout(() => controller.abort(new Error('Animation recording timed out. Please try again.')), 30000);
     recorder.start();
     const start = performance.now(), duration = REPLAY_SECONDS + HOLD_SECONDS;
     let elapsed = 0;
     while (elapsed < duration) {
       const now = await nextFrame(controller.signal);
       controller.signal.throwIfAborted();
-      elapsed = (now - start) / 1000;
-      capture(Math.min(1, elapsed / REPLAY_SECONDS));
+      elapsed = Math.max(0, (now - start) / 1000);
+      await capture(Math.min(1, elapsed / REPLAY_SECONDS), elapsed);
       onProgress(Math.min(1, elapsed / duration));
     }
     recorder.stop();await stopped;
@@ -156,7 +169,7 @@ export async function recordSceneGraph(view, { signal, onProgress }) {
     signal.removeEventListener('abort', abort);
     controller.signal.removeEventListener('abort', abortRecording);
     if (recorder?.state !== 'inactive' && recorder) recorder.stop();
-    stream?.getTracks().forEach(track => track.stop());target.dispose();
+    stream?.getTracks().forEach(track => track.stop());target.dispose();panel?.dispose();
     view.progress = originalProgress;
     if (!view.disposed) view.updateGeometry();
   }

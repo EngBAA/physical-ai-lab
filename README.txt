@@ -18,7 +18,11 @@ right of the animation controls. It saves a 1920 x 1080 video (WebM, or MP4 when
 that is the browser's supported format). The 5.2-second graph animation replays
 with that selection and its highlighted connections, then holds the complete
 graph for two seconds. Text labels and the current scan, map and spatial-link
-visibility settings are included. The current viewing direction is retained,
+visibility settings are included. When a label is selected, its visible details
+panel appears beside the graph, including the description, affordances, saved
+relationships and animated Generated view or 3D scan. Paused previews stay paused;
+the panel's scroll position and expanded sections are retained in the recording.
+The current viewing direction is retained,
 with framing widened to include the whole graph. Your original camera, selection
 and playback position are restored afterward. Keep the tab visible while it
 records; Cancel or Escape discards the recording. This is a visual video export;
