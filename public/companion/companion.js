@@ -32,7 +32,7 @@ function avatar() {
 class LabCompanion extends HTMLElement {
   constructor() {
     super(); this.attachShadow({mode: 'open'}); this.turns = new Map(); this.sequence = 0;
-    this.ready = false; this.busy = false; this.connected = false; this.demo = false;
+    this.ready = false; this.busy = false; this.connected = false;
     this.scene = {nodes: [], edges: [], aliases: {}}; this.timers = new Set(); this.pose = 'wave';
   }
   connectedCallback() {
@@ -45,7 +45,7 @@ class LabCompanion extends HTMLElement {
         <div class="workspace"><aside class="scene-panel" aria-label="Lab hierarchy">
           <div class="graph-wrap"><div class="hierarchy-host" aria-label="The website’s original 3D hierarchy scene graph"></div><div class="graph-empty">Loading the website’s hierarchy scene graph…</div></div>
         </aside><section class="conversation-panel" aria-label="Conversation with Masar"><div class="conversation-tools"><div class="top-actions"><span class="connection"><i></i><span class="connection-label">Not connected</span></span><button class="icon-button settings-toggle" aria-label="Connect to robot">${icon('link')}</button><button class="icon-button close-dashboard" aria-label="Minimize dashboard">${icon('minus')}</button></div></div>
-          <div class="transcript" role="log" aria-label="Questions, progress, and answers" aria-live="polite" aria-relevant="additions text"><div class="welcome"><div class="welcome-orbit"><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span>${avatar()}<span class="spark s1">✦</span><span class="spark s2">✧</span></div><span class="eyebrow">YOUR FRIEND IN THE PHYSICAL WORLD</span><h3>Hi, I’m Masar.</h3><p>Big questions. Little discoveries.<br>Let’s explore the lab together.</p><button class="preview-button">Preview a conversation ${icon('arrow')}</button><span class="preview-caption">A guided example · no robot actions</span></div></div>
+          <div class="transcript" role="log" aria-label="Questions, progress, and answers" aria-live="polite" aria-relevant="additions text"><div class="welcome"><div class="welcome-orbit"><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span>${avatar()}<span class="spark s1">✦</span><span class="spark s2">✧</span></div><span class="eyebrow">YOUR FRIEND IN THE PHYSICAL WORLD</span><h3>Hi, I’m Masar.</h3><p>Big questions. Little discoveries.<br>Let’s explore the lab together.</p></div></div>
           <div class="activity" role="status"><span class="activity-face">${avatar()}</span><div><strong class="activity-label">Here whenever you need me</strong><small class="activity-detail">Connect to the robot to start a conversation</small></div><span class="thinking-time"></span><span class="audio-wave"><b></b><b></b><b></b><b></b><b></b></span></div>
           <div class="composer-wrap"><div class="suggestions"><button data-prompt="What can I explore in the lab?">Explore the lab ↗</button><button data-prompt="Where is the coffee machine?">Find something ↗</button><button data-prompt="Hello Masar!">Say hello ♡</button></div>
             <form class="composer"><label class="sr-only" for="question">Your question to Masar</label><textarea id="question" rows="1" maxlength="2000" placeholder="Ask me anything about the lab…"></textarea><button type="button" class="mic-button" aria-label="Use this device’s microphone" title="Use this device’s microphone">${icon('mic')}</button><button type="submit" class="send-button" aria-label="Send question">${icon('arrow')}</button></form>
@@ -66,7 +66,6 @@ class LabCompanion extends HTMLElement {
     $('.composer').onsubmit = event => { event.preventDefault(); this.submit(); };
     $('#question').onkeydown = event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.submit(); } };
     this.shadowRoot.querySelectorAll('[data-prompt]').forEach(button => button.onclick = () => { $('#question').value = button.dataset.prompt; $('#question').focus(); });
-    $('.preview-button').onclick = () => this.preview();
     $('.mic-button').onclick = () => this.microphone();
     // Prevent the underlying 3D explorer’s G/L/R keyboard shortcuts while typing.
     this.shadowRoot.addEventListener('keydown', event => event.stopPropagation());
@@ -104,7 +103,7 @@ class LabCompanion extends HTMLElement {
     try { url = new URL(endpoint); if (!['ws:','wss:'].includes(url.protocol) || url.username || url.password || url.search || url.hash) throw Error(); }
     catch { this.notice('Enter a WebSocket address such as wss://robot.example.com/ws, without credentials or query parameters.'); return; }
     if (location.protocol === 'https:' && url.protocol !== 'wss:') { this.notice('This HTTPS website needs a secure wss:// bridge. Open the local dashboard for a local ws:// connection.'); return; }
-    this.disconnect(); this.clearTimers(); this.demo = false; this.manualDisconnect = false; this.endpoint = endpoint; this.token = token;
+    this.disconnect(); this.clearTimers(); this.manualDisconnect = false; this.endpoint = endpoint; this.token = token;
     if (!retry) this.retryDelay = 1000;
     this.notice(''); this.$('.connection-label').textContent = 'Connecting…';
     const socket = this.socket = new WebSocket(endpoint);
@@ -122,12 +121,12 @@ class LabCompanion extends HTMLElement {
   }
   updateConnection() {
     this.$('.connection').classList.toggle('online', this.connected && this.ready);
-    this.$('.connection-label').textContent = this.demo ? 'Guided preview' : this.connected ? (this.ready ? 'Robot connected' : 'Robot not ready') : 'Not connected';
-    this.$('.send-button').disabled = !this.ready || this.busy || this.demo || !!this.pendingQuestion;
+    this.$('.connection-label').textContent = this.connected ? (this.ready ? 'Robot connected' : 'Robot not ready') : 'Not connected';
+    this.$('.send-button').disabled = !this.ready || this.busy || !!this.pendingQuestion;
   }
   receive(event, replay = false) {
     if (event.type === 'snapshot') {
-      this.demo = false; this.connected = true; this.retryDelay = 1000;
+      this.connected = true; this.retryDelay = 1000;
       this.scene = event.scene; this.turns.clear(); this.$('.transcript').replaceChildren(); this.sequence = 0;
       for (const item of event.events || []) this.receive(item, true);
       this.sequence = event.seq; this.ready = event.state.ready; this.busy = event.state.busy;
@@ -214,7 +213,7 @@ class LabCompanion extends HTMLElement {
   tick() { if (this.busy && this.started) { const seconds = Math.max(0,Math.floor((Date.now()-this.started)/1000)); this.$('.thinking-time').textContent = `${seconds}s`; if (seconds > 12 && this.pose !== 'speaking') this.$('.activity-detail').textContent = 'Still working. I’ll keep you company while we wait.'; } }
   submit() {
     const input = this.$('#question'), text = input.value.trim(); if (!text) { input.focus(); return; }
-    if (!this.ready || this.demo) { this.$('.pairing').hidden = false; this.notice('Connect to your robot to ask your own questions. The guided preview is an example only.'); return; }
+    if (!this.ready) { this.$('.pairing').hidden = false; this.notice('Connect to your robot to ask a question.'); return; }
     if (this.busy || this.pendingQuestion) { this.notice('Please wait for Masar to finish this turn.'); return; }
     if (this.socket?.readyState !== WebSocket.OPEN) { this.notice('The robot is disconnected. Your question has not been sent.'); return; }
     const id = crypto.randomUUID(); this.pendingQuestion = {id,text}; this.updateConnection();
@@ -222,7 +221,7 @@ class LabCompanion extends HTMLElement {
   }
   microphone() {
     this.open();
-    if (!this.ready || this.demo) { this.notice('Connect to the robot first. You can also use its BOYA microphone once paired.'); this.$('.pairing').hidden = false; return; }
+    if (!this.ready) { this.notice('Connect to the robot first. You can also use its BOYA microphone once paired.'); this.$('.pairing').hidden = false; return; }
     if (this.recognition) { this.recognition.stop(); return; }
     if (this.busy) { this.notice('Please wait for this turn to finish before starting the browser microphone.'); return; }
     const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -276,19 +275,6 @@ class LabCompanion extends HTMLElement {
     if (this.highlight) this.hierarchyAction('highlight',this.highlight);
   }
 
-  preview() {
-    if (this.connected && this.ready) { this.notice('You are connected to the live robot. Type a question to start.'); return; }
-    this.disconnect(); this.clearTimers(); this.demo=true; this.busy=false; this.$('.transcript').replaceChildren(); this.turns.clear(); this.sequence=0;
-    this.$('.pairing').hidden=true; this.updateConnection(); this.notice('');
-    const target=this.scene.nodes.find(n=>/coffee maker/i.test(n.name)); const parent=this.scene.nodes.find(n=>n.id===target?.parent);
-    const id=`preview-${Date.now()}`; const send=event=>this.receive({...event,turn_id:id,at:Date.now()/1000});
-    send({type:'question',text:'Where is the coffee machine?',source:'text'});
-    this.later(()=>send({type:'progress',stage:'search',label:'Searching the scene graph',expression:'curious'}),650);
-    this.later(()=>send({type:'progress',stage:'matches',label:'Found Coffee Maker in the saved scene',nodes:target?[target.name]:[],expression:'happy'}),1900);
-    this.later(()=>send({type:'progress',stage:'branch',label:'Following the object’s location branch',nodes:target?[parent?.name,target.name].filter(Boolean):[],expression:'happy'}),3200);
-    this.later(()=>send({type:'answer',text:target?`The coffee machine is in the ${parent?.label||'lab'}. I found “${target.label}” in our scene graph. When I’m connected to the robot, you can ask me about it and hear my answer through the speaker.`:'Connect me to the robot and I can look up objects in its active scene graph.'}),4300);
-    this.later(()=>{send({type:'done',outcome:'completed'});this.hearts();},4800);
-  }
 }
 if (!customElements.get('lab-companion')) customElements.define('lab-companion',LabCompanion);
 if (!document.querySelector('lab-companion')) document.body.append(document.createElement('lab-companion'));
