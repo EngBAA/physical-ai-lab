@@ -3,17 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f4f1e9">
-  <title>Masar · Physical AI Lab</title>
+  <meta name="theme-color" content="#081b2d">
+  <title>Masar · Physical AI Lab companion</title>
   <style>
-    *{box-sizing:border-box}body{margin:0;background:#f4f1e9;color:#303c34;font-family:system-ui,sans-serif;min-height:100dvh}
-    header{display:flex;justify-content:space-between;align-items:center;padding:28px 6vw;font-size:12px;color:#737a6e}a{color:inherit;text-decoration:none}a:hover{text-decoration:underline}
-    main{max-width:1000px;margin:auto;padding:18vh 7vw}h1{font-size:clamp(48px,7vw,76px);font-weight:500;letter-spacing:-.06em;line-height:1.1;margin:0 0 20px}p{font-size:16px;line-height:1.7;color:#737a6e}button{border:0;border-radius:10px;background:#62765c;color:#fcfaf5;padding:14px 22px;font:inherit;cursor:pointer;margin-top:32px}button:hover{background:#4d6348}button:focus-visible,a:focus-visible{outline:2px solid #ad6b54;outline-offset:4px}
+    *{box-sizing:border-box}body{margin:0;background:#081b2d;color:#edece3;font-family:system-ui,sans-serif;min-height:100dvh;background-image:radial-gradient(ellipse at 68% 55%,#163b48,transparent 65%)}
+    header{display:flex;justify-content:space-between;align-items:center;padding:30px 5vw;border-bottom:1px solid #ffffff12}header span{font-size:11px;letter-spacing:.2em;color:#e7cd91}header a{color:#b0c5cd;font-size:12px;text-decoration:none}
+    main{max-width:1000px;margin:auto;padding:12vh 7vw}small{color:#9fb6bc;letter-spacing:.2em;font-size:11px}h1{font-family:Georgia,serif;font-size:clamp(50px,7vw,90px);font-weight:400;letter-spacing:-.05em;line-height:1.03;margin:24px 0}h1 em{color:#e7cd91;font-weight:400}p{color:#a7bdc7;max-width:440px;font-size:16px;line-height:1.9}button{border:1px solid #e7cd9160;border-radius:30px;background:#e7cd91;color:#0b2132;padding:16px 24px;font:inherit;cursor:pointer;margin-top:20px}footer{padding:40px 7vw;color:#6c8795;font-size:11px}
   </style>
 </head>
 <body>
-  <header><span>Physical AI Lab</span><a href="https://engbaa.github.io/physical-ai-lab/">Explore the lab ↗</a></header>
-  <main><h1>Masar</h1><p>Your lab companion.</p><button id="open-companion">Open conversation ↗</button></main>
+  <header><span>PHYSICAL AI LAB / MBZUAI</span><a href="https://engbaa.github.io/physical-ai-lab/">Explore the lab ↗</a></header>
+  <main><small>A LITTLE COMPANION. A WORLD TO EXPLORE.</small><h1>Meet your<br><em>lab companion.</em></h1><p>Ask a question. Follow the connections. Let Masar show you around our world of physical AI.</p><button id="open-companion">Say hello to Masar ↗</button></main>
+  <footer>Voice, knowledge, and a little personality.</footer>
   <script type="module" src="./companion.js"></script>
   <script>document.getElementById('open-companion').onclick=()=>document.querySelector('lab-companion')?.open();</script>
 </body>
