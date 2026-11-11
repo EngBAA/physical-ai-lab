@@ -1,3 +1,4 @@
+import { installCompanionHierarchy } from './companion-hierarchy.js';
 import './styles.css';
 import './inspector.css';
 import './layout.css';
@@ -59,6 +60,7 @@ async function start() {
     $('download-graph').href = new URL(layer.annotations.original_graph_url, $('download-annotations').href).href;
     $('download-manifest').href = layer.spec.url;
     window.__segments = { viewer, ui };
+    installCompanionHierarchy(viewer, ui);
     if (location.hash === '#graph') await ui.graph.open(layer);
   } catch (reason) { error(reason); }
 }
