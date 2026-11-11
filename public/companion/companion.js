@@ -9,25 +9,7 @@ const ICONS = {
   check: '<path d="m5 12 4 4L19 6"/>', plus: '<path d="M12 5v14M5 12h14"/>', minus: '<path d="M5 12h14"/>',
 };
 const icon = name => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ICONS.graph}</svg>`;
-let serial = 0;
-function avatar() {
-  const id = `masar-${++serial}`;
-  return `<div class="avatar" data-pose="wave"><svg viewBox="0 0 220 250" aria-hidden="true" class="character">
-    <defs><radialGradient id="${id}" cx="35%" cy="22%" r="85%"><stop stop-color="#fffefa"/><stop offset=".6" stop-color="#edf0ed"/><stop offset="1" stop-color="#bdcfce"/></radialGradient><linearGradient id="${id}-arm" x2="1" y2="1"><stop stop-color="#fffefa"/><stop offset="1" stop-color="#cbd9d7"/></linearGradient></defs>
-    <ellipse class="shadow" cx="110" cy="233" rx="56" ry="8" fill="#000" opacity=".13"/>
-    <g class="body"><ellipse cx="86" cy="206" rx="22" ry="26" fill="url(#${id})"/><ellipse cx="135" cy="206" rx="22" ry="26" fill="url(#${id})"/>
-    <g class="arm arm-left"><path d="M69 97C44 95 34 121 29 155c-3 21 13 28 22 14l30-48" fill="url(#${id}-arm)" stroke="#fff" stroke-opacity=".5"/></g>
-    <g class="arm arm-right"><path d="M153 97c25-2 35 24 40 58 3 21-13 28-22 14l-30-48" fill="url(#${id}-arm)" stroke="#fff" stroke-opacity=".5"/></g>
-    <path d="M110 83c-41 0-64 38-64 81 0 42 25 56 64 56s64-14 64-56c0-43-23-81-64-81" fill="url(#${id})" stroke="#fff" stroke-opacity=".65"/>
-    <path d="M62 160c2 27 18 40 48 42" fill="none" stroke="#fff" stroke-width="3" opacity=".45"/>
-    <circle cx="136" cy="122" r="9" fill="#e8eddd" stroke="#adbfac"/><path d="m132 122 3 3 5-6" stroke="#839d77" fill="none" stroke-width="1.5"/>
-    <g class="head"><ellipse cx="110" cy="67" rx="49" ry="32" fill="url(#${id})" stroke="#fff" stroke-opacity=".8"/>
-    <path d="M89 66h42" stroke="#243b40" stroke-width="2.5"/><g class="eyes"><circle cx="88" cy="66" r="5" fill="#213539"/><circle cx="132" cy="66" r="5" fill="#213539"/></g>
-    <g class="happy-eyes" fill="none" stroke="#213539" stroke-width="3" stroke-linecap="round"><path d="M82 68q6-9 12 0M126 68q6-9 12 0"/></g>
-    <g class="blush" fill="#e5a5a7" opacity=".6"><ellipse cx="78" cy="77" rx="7" ry="3"/><ellipse cx="142" cy="77" rx="7" ry="3"/></g></g></g>
-    <g class="thought-dots" fill="#e7cd91"><circle cx="170" cy="55" r="4"/><circle cx="182" cy="43" r="5"/><circle cx="195" cy="29" r="6"/></g>
-  </svg><span class="heart h1">♥</span><span class="heart h2">♥</span><span class="heart h3">♥</span><span class="listen-ring"></span></div>`;
-}
+import { avatar, idleActions } from './avatar.js';
 
 class LabCompanion extends HTMLElement {
   constructor() {
@@ -37,46 +19,45 @@ class LabCompanion extends HTMLElement {
   }
   connectedCallback() {
     this.shadowRoot.innerHTML = `<link rel="stylesheet" href="${new URL('companion.css', ASSETS)}">
+      <link rel="stylesheet" href="${new URL('avatar.css', ASSETS)}">
       <button class="launcher" aria-label="Open Masar, your lab companion. Double-click to type a question." title="Double-click to ask Masar">
-        <span class="hello">A little help?<span>Double-click to ask me</span></span>${avatar()}<span class="name-tag"><i></i> MASAR</span>
+        <span class="hello">Hello there.<span>Double-click to chat</span></span>${avatar()}
       </button>
-      <dialog class="dashboard" aria-labelledby="companion-title">
-        <header class="topbar"><div class="wordmark"><span class="brand-symbol">m<span>·</span></span><div><strong id="companion-title">Masar<span> / LAB COMPANION</span></strong><small>Physical AI Lab · MBZUAI</small></div></div>
-          <div class="top-actions"><span class="connection"><i></i><span class="connection-label">Not connected</span></span><button class="icon-button settings-toggle" aria-label="Connect to robot">${icon('link')}</button><button class="icon-button close-dashboard" aria-label="Minimize dashboard">${icon('minus')}</button></div></header>
-        <div class="workspace"><aside class="scene-panel"><div class="section-heading"><div><span class="eyebrow">01 / SPATIAL KNOWLEDGE</span><h2>A world of connections.</h2></div><span class="scene-count">— places</span></div>
-          <div class="graph-toolbar"><span>Lab → Chambers → Areas → Objects</span><button class="reset-graph">Reset view ↗</button></div>
-          <div class="graph-wrap"><div class="hierarchy-host" aria-label="The website’s original 3D hierarchy scene graph"></div><div class="graph-empty">Loading the website’s hierarchy scene graph…</div><span class="graph-caption">Original lab hierarchy · drag to orbit · scroll to zoom</span></div>
-          <div class="path-card"><span class="eyebrow">FOLLOW THE CONNECTIONS</span><p class="path-label">The graph lights up as Masar finds an answer.</p><div class="path-nodes"></div></div>
-          <div class="graph-bottom"><span><i class="dot mint"></i> <span class="graph-source">Original website hierarchy</span></span><span class="robot-location">Position unavailable</span></div>
-        </aside><section class="conversation-panel" aria-label="Conversation with Masar"><div class="conversation-heading"><div><span class="eyebrow">02 / CONVERSATION</span><h2>A little curiosity goes a long way.</h2></div><span class="mode-badge">COMPANION</span></div>
-          <div class="transcript" role="log" aria-label="Questions, progress, and answers" aria-live="polite" aria-relevant="additions text"><div class="welcome"><div class="welcome-orbit"><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span>${avatar()}<span class="spark s1">✦</span><span class="spark s2">✧</span></div><span class="eyebrow">YOUR FRIEND IN THE PHYSICAL WORLD</span><h3>Hi, I’m Masar.</h3><p>Big questions. Little discoveries.<br>Let’s explore the lab together.</p><button class="preview-button">Preview a conversation ${icon('arrow')}</button><span class="preview-caption">A guided example · no robot actions</span></div></div>
-          <div class="activity" role="status"><span class="activity-face">${avatar()}</span><div><strong class="activity-label">Here whenever you need me</strong><small class="activity-detail">Connect to the robot to start a conversation</small></div><span class="thinking-time"></span><span class="audio-wave"><b></b><b></b><b></b><b></b><b></b></span></div>
-          <div class="composer-wrap"><div class="suggestions"><button data-prompt="What can I explore in the lab?">Explore the lab ↗</button><button data-prompt="Where is the coffee machine?">Find something ↗</button><button data-prompt="Hello Masar!">Say hello ♡</button></div>
-            <form class="composer"><label class="sr-only" for="question">Your question to Masar</label><textarea id="question" rows="1" maxlength="2000" placeholder="Ask me anything about the lab…"></textarea><button type="button" class="mic-button" aria-label="Use this device’s microphone" title="Use this device’s microphone">${icon('mic')}</button><button type="submit" class="send-button" aria-label="Send question">${icon('arrow')}</button></form>
-            <div class="composer-footer"><span class="input-hint">Unmute the BOYA microphone, or type here</span><span class="speaker-label">${icon('sound')} Robot speaker</span></div><p class="notice" role="alert" hidden></p></div>
-        </section></div>
-        <form class="pairing" hidden><div class="pairing-top"><span class="eyebrow">PAIR WITH YOUR ROBOT</span><button type="button" class="pairing-close icon-button" aria-label="Close connection settings">${icon('close')}</button></div><h3>A familiar voice. A live connection.</h3><p>Connect to the companion bridge running on your robot’s master desktop.</p><label for="endpoint">Robot bridge address</label><input id="endpoint" type="url" placeholder="wss://robot.example.com/ws" required><label for="token">Pairing token</label><input id="token" type="password" autocomplete="off" placeholder="Provided by your lab operator"><small>The token stays in this tab. Questions are sent to the robot and replies play through its speaker.</small><div class="pair-actions"><button type="button" class="disconnect-button">Disconnect</button><button class="pair-button" type="submit">Connect ${icon('arrow')}</button></div></form>
+      <dialog class="dashboard" aria-label="Masar lab companion">
+        <div class="workspace">
+          <aside class="scene-panel" aria-label="Lab hierarchy">
+            <div class="scene-tools"><span class="scene-title">Lab</span><button class="reset-graph icon-button" aria-label="Reset graph view" title="Reset view">${icon('graph')}</button></div>
+            <div class="graph-wrap"><div class="hierarchy-host" aria-label="The website’s original 3D hierarchy scene graph"></div><div class="graph-empty">Loading the lab…</div></div>
+          </aside>
+          <section class="conversation-panel" aria-label="Conversation with Masar">
+            <header class="conversation-tools"><span class="connection"><i></i><span class="connection-label">Offline</span></span><div class="top-actions"><button class="icon-button settings-toggle" aria-label="Connect to robot" title="Connection settings">${icon('link')}</button><button class="icon-button close-dashboard" aria-label="Minimize dashboard" title="Minimize">${icon('minus')}</button></div></header>
+            <div class="transcript" role="log" aria-label="Questions, progress, and answers" aria-live="polite" aria-relevant="additions text"><div class="welcome"><div class="welcome-character">${avatar()}</div><h1>Hello, you.</h1><p>What shall we find?</p><button class="preview-button" aria-label="Preview a conversation">Try an example ${icon('arrow')}</button></div></div>
+            <div class="activity" role="status" hidden><span class="activity-face">${avatar()}</span><div><strong class="activity-label">Ready when you are</strong><small class="activity-detail"></small></div><span class="thinking-time"></span><span class="audio-wave"><b></b><b></b><b></b><b></b><b></b></span></div>
+            <div class="composer-wrap"><form class="composer"><label class="sr-only" for="question">Your question to Masar</label><textarea id="question" rows="1" maxlength="2000" placeholder="Ask about the lab…"></textarea><button type="button" class="mic-button" aria-label="Use this device’s microphone" title="Use this device’s microphone">${icon('mic')}</button><button type="submit" class="send-button" aria-label="Send question">${icon('arrow')}</button></form><p class="notice" role="alert" hidden></p></div>
+          </section>
+        </div>
+        <form class="pairing" hidden><div class="pairing-top"><h2>Connect to your robot</h2><button type="button" class="pairing-close icon-button" aria-label="Close connection settings">${icon('close')}</button></div><p>Use the address and token from your lab desktop.</p><label for="endpoint">Robot bridge address</label><input id="endpoint" type="url" placeholder="wss://robot.example.com/ws" required><label for="token">Pairing token</label><input id="token" type="password" autocomplete="off" placeholder="Your pairing token"><small>Replies play through the robot’s speaker. Your token stays in this tab.</small><div class="pair-actions"><button type="button" class="disconnect-button">Disconnect</button><button class="pair-button" type="submit">Connect ${icon('arrow')}</button></div></form>
       </dialog>`;
     const $ = sel => this.shadowRoot.querySelector(sel); this.$ = $;
     $('.launcher').onclick = event => { if (event.detail === 1) this.hearts(); };
     $('.launcher').ondblclick = () => { this.open(); $('#question').focus(); };
     $('.launcher').onkeydown = event => { if (['Enter',' '].includes(event.key)) { event.preventDefault(); this.open(); $('#question').focus(); } };
     $('.close-dashboard').onclick = () => this.close();
-    $('.dashboard').addEventListener('cancel', () => this.returnFocus());
+    $('.dashboard').addEventListener('cancel', event => { event.preventDefault(); this.close(); });
     $('.settings-toggle').onclick = () => { $('.pairing').hidden = !$('.pairing').hidden; if (!$('.pairing').hidden) $('#endpoint').focus(); };
     $('.pairing-close').onclick = () => { $('.pairing').hidden = true; $('.settings-toggle').focus(); };
     $('.pairing').onsubmit = event => { event.preventDefault(); this.connect($('#endpoint').value.trim(), $('#token').value); };
     $('.disconnect-button').onclick = () => this.disconnect();
     $('.composer').onsubmit = event => { event.preventDefault(); this.submit(); };
     $('#question').onkeydown = event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.submit(); } };
-    this.shadowRoot.querySelectorAll('[data-prompt]').forEach(button => button.onclick = () => { $('#question').value = button.dataset.prompt; $('#question').focus(); });
     $('.preview-button').onclick = () => this.preview();
     $('.mic-button').onclick = () => this.microphone();
-    $('.reset-graph').onclick = () => { this.highlight = null; this.hierarchyAction('reset'); this.pathLabel('The graph lights up as Masar finds an answer.'); };
+    $('.reset-graph').onclick = () => { this.highlight = null; this.hierarchyAction('reset'); };
     // Prevent the underlying 3D explorer’s G/L/R keyboard shortcuts while typing.
     this.shadowRoot.addEventListener('keydown', event => event.stopPropagation());
     this.clock = setInterval(() => this.tick(), 1000);
-    this.greeting = setInterval(() => { if (!this.busy && !this.$('.dashboard').open) this.setPose(this.pose === 'wave' ? 'happy' : 'wave'); }, 14000);
+    this.idleIndex = 0; this.poseAt = Date.now();
+    this.greeting = setInterval(() => this.animateIdle(), 1000);
     let endpoint = ''; try { endpoint = localStorage.getItem('masar-endpoint') || ''; } catch {}
     if (['localhost','127.0.0.1'].includes(location.hostname) && location.port === '8767') endpoint = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws`;
     $('#endpoint').value = endpoint;
@@ -94,8 +75,20 @@ class LabCompanion extends HTMLElement {
   returnFocus() { this.$('.launcher').focus(); }
   later(fn, delay) { const timer = setTimeout(() => { this.timers.delete(timer); fn(); }, delay); this.timers.add(timer); return timer; }
   clearTimers() { this.timers.forEach(clearTimeout); this.timers.clear(); }
-  setPose(pose) { this.pose = pose; this.shadowRoot.querySelectorAll('.avatar').forEach(node => node.dataset.pose = pose); }
-  hearts() { this.setPose('love'); this.shadowRoot.querySelectorAll('.avatar').forEach(node => { node.classList.remove('hearts'); void node.offsetWidth; node.classList.add('hearts'); }); this.later(() => { if (!this.busy) this.setPose('wave'); }, 2400); }
+  setPose(pose, action) {
+    this.pose = pose; this.poseAt = Date.now();
+    this.setAction(action || ({thinking:'cycling', curious:'inspecting'}[pose] || pose));
+  }
+  setAction(action) {
+    this.action = action; this.poseAt = Date.now();
+    this.shadowRoot.querySelectorAll('.avatar').forEach(node => { node.dataset.pose = this.pose; node.dataset.action = action; });
+  }
+  animateIdle() {
+    if (this.busy || this.pendingQuestion || this.recognition || ['listening','speaking','thinking'].includes(this.pose) || Date.now() - this.poseAt < 9000) return;
+    this.poseAt = Date.now();
+    this.setAction(idleActions[++this.idleIndex % idleActions.length]);
+  }
+  hearts() { if (!this.busy && !['listening','speaking'].includes(this.pose)) this.setPose('love'); this.shadowRoot.querySelectorAll('.avatar').forEach(node => { node.classList.remove('hearts'); void node.offsetWidth; node.classList.add('hearts'); }); this.later(() => { if (!this.busy && this.pose === 'love') this.setPose('wave'); }, 2400); }
   notice(text) { this.$('.notice').hidden = !text; this.$('.notice').textContent = text; }
   async loadScene() {
     try { const response = await fetch(new URL('scene.json', ASSETS)); if (!response.ok) throw Error(); const scene = await response.json(); if (!this.connected) { this.scene = scene; this.renderGraph(); } } catch { this.$('.graph-empty').textContent = 'Connect to the robot to load its scene graph.'; }
@@ -127,10 +120,8 @@ class LabCompanion extends HTMLElement {
   }
   updateConnection() {
     this.$('.connection').classList.toggle('online', this.connected && this.ready);
-    this.$('.connection-label').textContent = this.demo ? 'Guided preview' : this.connected ? (this.ready ? 'Robot connected' : 'Robot not ready') : 'Not connected';
-    this.$('.mode-badge').textContent = this.demo ? 'PREVIEW' : this.ready ? 'LIVE SESSION' : 'COMPANION';
+    this.$('.connection-label').textContent = this.demo ? 'Example · no audio' : this.connected ? (this.ready ? 'Connected' : 'Starting…') : 'Offline';
     this.$('.send-button').disabled = !this.ready || this.busy || this.demo || !!this.pendingQuestion;
-    this.$('.speaker-label').innerHTML = icon('sound') + (this.demo ? 'Preview · no audio' : 'Robot speaker');
   }
   receive(event, replay = false) {
     if (event.type === 'snapshot') {
@@ -138,7 +129,7 @@ class LabCompanion extends HTMLElement {
       this.scene = event.scene; this.turns.clear(); this.$('.transcript').replaceChildren(); this.sequence = 0;
       for (const item of event.events || []) this.receive(item, true);
       this.sequence = event.seq; this.ready = event.state.ready; this.busy = event.state.busy;
-      this.$('.pairing').hidden = true; this.notice(''); this.$('.graph-source').textContent = 'Original hierarchy · live highlights';
+      this.$('.pairing').hidden = true; this.notice('');
       this.receive({type:'location',name:event.state.location},true);
       this.playback = event.state.playback; this.updateConnection(); this.renderGraph();
       if (!this.turns.size) this.emptyConversation();
@@ -150,18 +141,19 @@ class LabCompanion extends HTMLElement {
     if (event.seq && event.seq <= this.sequence) return;
     if (event.seq) this.sequence = event.seq;
     if (event.type === 'status') { const wasReady = this.ready; if ('ready' in event) this.ready = event.ready; if ('busy' in event) this.busy = event.busy; if (this.ready && !wasReady && !replay) this.open(); this.updateConnection(); return; }
-    if (event.type === 'location') { this.robotLocation = event.name; this.$('.robot-location').textContent = event.name ? `At ${event.name.replaceAll('_',' ')}` : 'Position unavailable'; this.renderGraph(); return; }
+    if (event.type === 'location') { this.robotLocation = event.name; this.renderGraph(); return; }
     if (event.type === 'microphone') {
-      if (event.state === 'listening') { if (!replay) this.open(); this.setActivity('listening', 'I’m listening…', 'Go ahead. I’m all ears.'); }
+      if (event.state === 'listening') { if (!replay) this.open(); this.setActivity('listening', 'Listening…', ''); }
       if (event.state === 'unavailable') this.$('.activity-detail').textContent = 'Robot microphone unavailable. You can still type a question.';
       if (event.state === 'transcribing') this.setActivity('thinking','Turning your voice into words','Your question will appear here in a moment.');
+      if (event.state === 'idle' && !this.busy && this.pose === 'listening') this.setActivity('wave', 'Ready when you are', '');
       return;
     }
     if (event.type === 'accepted') { if (this.pendingQuestion?.id === event.request_id) { if (this.$('#question').value.trim() === this.pendingQuestion.text) this.$('#question').value = ''; this.pendingQuestion = null; } this.busy = true; this.updateConnection(); this.notice(''); return; }
     if (event.type === 'error') { this.pendingQuestion = null; this.notice(event.message); this.updateConnection(); return; }
     if (event.type === 'playback') {
       this.playback = event.state; this.$('.audio-wave').classList.toggle('playing',event.state === 'speaking');
-      if (event.state === 'speaking') this.setActivity('speaking','Speaking through the robot','The answer is also shown in this conversation.');
+      if (event.state === 'speaking') this.setActivity('speaking','Speaking…','');
       if (event.state === 'failed') this.notice('The robot speaker did not confirm playback. The answer is still visible here.');
       if (event.state === 'idle') this.setActivity(this.busy ? 'thinking' : 'happy', this.busy ? 'Working on your question' : 'Ready for your next question', 'Unmute the microphone or type below.');
       return;
@@ -174,7 +166,7 @@ class LabCompanion extends HTMLElement {
       this.busy = true; this.started = event.at ? event.at * 1000 : Date.now(); this.highlight = null; this.hierarchyAction('clear'); this.renderGraph();
       if (!replay) this.open();
       const loving = /\b(thank|love|lovely|cute)\b/i.test(event.text || '');
-      this.setActivity(loving ? 'love' : 'thinking', 'Let me think about that…','Following the connections, one step at a time.');
+      this.setActivity(loving ? 'love' : 'thinking', 'Thinking…','');
       if (loving && !replay) this.hearts();
       this.updateConnection();
     }
@@ -187,7 +179,7 @@ class LabCompanion extends HTMLElement {
       if (id !== this.currentTurn) return;
       if (event.nodes?.length || event.route?.length) this.showBranch(event);
       else this.hierarchyAction('highlight', event);
-      if (!replay) this.setActivity(event.expression || 'thinking',event.label,'Live activity from the robot');
+      if (!replay) this.setActivity(event.expression || 'thinking', event.label, '', this.progressAction(event));
       this.$('.graph-wrap').classList.toggle('searching', event.stage === 'search' || event.stage === 'lookup');
     }
     if ((event.type === 'answer' || event.type === 'answer_update') && turn) {
@@ -199,25 +191,39 @@ class LabCompanion extends HTMLElement {
       if (turn) { turn.card.dataset.outcome = event.outcome; turn.status.textContent = event.outcome === 'completed' ? 'Complete' : event.outcome; }
       if (id !== this.currentTurn) return;
       this.busy = false; this.started = null; this.$('.thinking-time').textContent = ''; this.$('.graph-wrap').classList.remove('searching'); this.hierarchyAction('finish');
-      if (!replay) this.setActivity(this.playback === 'speaking' ? 'speaking' : event.outcome === 'completed' ? 'happy' : 'concerned', this.playback === 'speaking' ? 'Speaking through the robot' : event.outcome === 'completed' ? 'A little discovery, together.' : 'Let’s try that again', 'I’m here for your next question.');
+      if (!replay) this.setActivity(this.playback === 'speaking' ? 'speaking' : event.outcome === 'completed' ? 'happy' : 'concerned', this.playback === 'speaking' ? 'Speaking through the robot' : event.outcome === 'completed' ? 'Ready when you are' : 'Let’s try that again', 'I’m here for your next question.');
       this.updateConnection();
     }
     const transcript = this.$('.transcript'); if (transcript.scrollHeight - transcript.scrollTop - transcript.clientHeight < 300 || event.type === 'question') transcript.scrollTop = transcript.scrollHeight;
   }
   emptyConversation() {
-    const el = document.createElement('div'); el.className = 'empty-session'; el.textContent = 'Connected. Say hello to begin your first conversation.'; this.$('.transcript').append(el); this.emptyMessage = el;
+    const el = document.createElement('div'); el.className = 'welcome empty-session'; el.innerHTML = `<div class="welcome-character">${avatar()}</div><h1>Hello, you.</h1><p>What shall we find?</p>`; this.$('.transcript').append(el); this.emptyMessage = el;
   }
   addTurn(id, event) {
     const card = document.createElement('article'); card.className = 'turn';
-    card.innerHTML = `<div class="turn-meta"><span class="visitor-icon">↗</span><span>YOU <small class="source"></small></span><span class="turn-time"></span></div><h3 class="question-text"></h3><div class="journey"><div class="journey-title">${icon('graph')} THE PATH TO AN ANSWER <span class="turn-status">In progress</span></div><ol class="progress-list"></ol></div><div class="answer" hidden><div class="answer-label"><span class="mini-face">●—●</span> MASAR</div></div><button class="revisit" type="button">Show connections ↗</button>`;
-    card.querySelector('.source').textContent = event.source === 'microphone' ? '· VOICE' : '· TEXT';
+    card.innerHTML = `<div class="turn-meta"><span class="visitor-icon">↗</span><span>You <small class="source"></small></span><span class="turn-time"></span></div><h3 class="question-text"></h3><div class="journey"><div class="journey-title">${icon('graph')} Activity <span class="turn-status">In progress</span></div><ol class="progress-list"></ol></div><div class="answer" hidden><div class="answer-label"><span class="mini-face">●—●</span> Masar</div></div><button class="revisit" type="button">Show connections ↗</button>`;
+    card.querySelector('.source').textContent = event.source === 'microphone' ? '· Voice' : '· Text';
     card.querySelector('.turn-time').textContent = new Date((event.at || Date.now()/1000)*1000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
     const turn = {card,question:card.querySelector('.question-text'),progress:card.querySelector('.progress-list'),answer:card.querySelector('.answer'),status:card.querySelector('.turn-status'),stages:new Map(),events:[]};
-    card.querySelector('.revisit').onclick = () => { const last = [...turn.events].reverse().find(e=>e.route?.length||e.nodes?.length); if (last) this.showBranch(last); else this.pathLabel('This answer did not select a scene-graph branch.'); };
+    card.querySelector('.revisit').onclick = () => { const last = [...turn.events].reverse().find(e=>e.route?.length||e.nodes?.length); if (last) this.showBranch(last); else this.notice('No location was selected for this answer.'); };
     this.turns.set(id,turn); this.$('.transcript').append(card);
     if (this.turns.size > 80) { const first = this.turns.keys().next().value; this.turns.get(first).card.remove(); this.turns.delete(first); }
   }
-  setActivity(pose, label, detail) { this.setPose(pose); this.$('.activity-label').textContent = label; this.$('.activity-detail').textContent = detail; this.$('.activity').dataset.state = pose; }
+  progressAction(event) {
+    const stage = event.stage || '';
+    if (/search|lookup|retriev|inspect/.test(stage)) return 'inspecting';
+    if (/match|context|knowledge|read|branch/.test(stage)) return 'reading';
+    return 'cycling';
+  }
+  setActivity(pose, label, detail, action) {
+    this.setPose(pose, action);
+    this.$('.activity').hidden = !!this.$('.welcome');
+    this.$('.activity-label').textContent = label;
+    // Supporting detail remains available to assistive technology, without a
+    // second line repeating the conversation or persistent microphone hints.
+    this.$('.activity-detail').textContent = detail;
+    this.$('.activity').dataset.state = pose;
+  }
   tick() { if (this.busy && this.started) { const seconds = Math.max(0,Math.floor((Date.now()-this.started)/1000)); this.$('.thinking-time').textContent = `${seconds}s`; if (seconds > 12 && this.pose !== 'speaking') this.$('.activity-detail').textContent = 'Still working. I’ll keep you company while we wait.'; } }
   submit() {
     const input = this.$('#question'), text = input.value.trim(); if (!text) { input.focus(); return; }
@@ -245,8 +251,7 @@ class LabCompanion extends HTMLElement {
     const alias = this.scene.aliases?.[value]; const values = [value,...(Array.isArray(alias)?alias:alias?[alias]:[])];
     return this.scene.nodes.filter(node => values.some(v => v === node.id || v === node.name));
   }
-  showBranch(event) { this.highlight = event; this.$('.graph-wrap').classList.remove('searching'); this.pathLabel(event.label); this.$('.path-nodes').replaceChildren(); for (const name of event.route || event.nodes || []) { const span = document.createElement('span'); span.textContent = name.replaceAll('_',' '); this.$('.path-nodes').append(span); } this.renderGraph(); }
-  pathLabel(text) { this.$('.path-label').textContent = text; if (!this.highlight) this.$('.path-nodes').replaceChildren(); }
+  showBranch(event) { this.highlight = event; this.$('.graph-wrap').classList.remove('searching'); this.renderGraph(); }
   mountHierarchy() {
     if (!this.$('.dashboard').open) return;
     const host = this.$('.hierarchy-host');
@@ -254,8 +259,6 @@ class LabCompanion extends HTMLElement {
       this.hierarchyFrame?.remove(); this.hierarchyFrame = null;
       window.MasarHierarchy.mount(host).then(() => {
         this.$('.graph-empty').hidden = true;
-        const stats = window.MasarHierarchy.stats;
-        if (stats) this.$('.scene-count').textContent = `${stats.chambers} chambers · ${stats.objects} objects`;
         if (this.highlight) this.hierarchyAction('highlight', this.highlight);
       }).catch(() => { this.$('.graph-empty').textContent = 'The lab hierarchy could not load. Reopen the dashboard to retry.'; });
       return;
@@ -289,14 +292,14 @@ class LabCompanion extends HTMLElement {
   preview() {
     if (this.connected && this.ready) { this.notice('You are connected to the live robot. Type a question to start.'); return; }
     this.disconnect(); this.clearTimers(); this.demo=true; this.busy=false; this.$('.transcript').replaceChildren(); this.turns.clear(); this.sequence=0;
-    this.$('.pairing').hidden=true; this.$('.graph-source').textContent='Original hierarchy · preview'; this.updateConnection(); this.notice('Guided preview only. No model is running and no robot actions or speech are sent.');
+    this.$('.pairing').hidden=true; this.updateConnection(); this.notice('');
     const target=this.scene.nodes.find(n=>/coffee maker/i.test(n.name)); const parent=this.scene.nodes.find(n=>n.id===target?.parent);
     const id=`preview-${Date.now()}`; const send=event=>this.receive({...event,turn_id:id,at:Date.now()/1000});
     send({type:'question',text:'Where is the coffee machine?',source:'text'});
     this.later(()=>send({type:'progress',stage:'search',label:'Searching the scene graph',expression:'curious'}),650);
     this.later(()=>send({type:'progress',stage:'matches',label:'Found Coffee Maker in the saved scene',nodes:target?[target.name]:[],expression:'happy'}),1900);
     this.later(()=>send({type:'progress',stage:'branch',label:'Following the object’s location branch',nodes:target?[parent?.name,target.name].filter(Boolean):[],expression:'happy'}),3200);
-    this.later(()=>send({type:'answer',text:target?`The coffee machine is in the ${parent?.label||'lab'}. I found “${target.label}” in our scene graph. When I’m connected to the robot, you can ask me about it and hear my answer through the speaker.`:'Connect me to the robot and I can look up objects in its active scene graph.'}),4300);
+    this.later(()=>send({type:'answer',text:target?`The coffee machine is in the ${parent?.label||'lab'}. I’ve highlighted it in the lab.`:'Connect me to the robot and I can look up objects in its active scene graph.'}),4300);
     this.later(()=>{send({type:'done',outcome:'completed'});this.hearts();},4800);
   }
 }

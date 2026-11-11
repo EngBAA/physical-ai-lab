@@ -5,15 +5,15 @@ import { hierarchyBranch } from './companion-hierarchy-model.js';
 
 const embedded = new URLSearchParams(location.search).has('companion-embed');
 const hostStyles = `
-  .hierarchy-host{position:relative;width:100%;height:100%;min-height:300px;overflow:hidden;border-radius:8px;background:#061522}
+  .hierarchy-host{position:relative;width:100%;height:100%;min-height:300px;overflow:hidden;background:#252d2a;color:#d7ddd0}
   .hierarchy-host canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;outline:none}
   .hierarchy-host .scene-graph-ui{position:absolute;inset:0;pointer-events:none}
   .hierarchy-host .graph-exit,.hierarchy-host .graph-download{display:none}
   .hierarchy-host .graph-options{left:10px;right:10px;top:10px;font-size:8px;padding:7px;gap:8px;width:max-content;max-width:calc(100% - 20px)}
-  .hierarchy-host .graph-player{bottom:28px;left:12px;right:12px;transform:none;width:auto;max-width:none;padding:7px 9px;gap:9px}
+  .hierarchy-host .graph-player{bottom:18px;left:18px;right:18px;transform:none;width:auto;max-width:none;padding:9px 11px;gap:9px}
   .hierarchy-host .graph-player button{font-size:9px;min-width:27px}
   .hierarchy-host .graph-status{font-size:7px;width:85px}
-  .hierarchy-host .graph-help{bottom:8px;font-size:7px}
+  .hierarchy-host .graph-help{display:none}
   .hierarchy-host .graph-node-label{font-size:7px;padding:3px 5px;max-width:120px;pointer-events:auto}
   .hierarchy-host .graph-label-chamber{font-size:9px;padding:4px 7px}
   .hierarchy-host .graph-label-lab{font-size:10px}
@@ -21,8 +21,13 @@ const hostStyles = `
   .hierarchy-host .graph-detail h3{font-size:17px}.hierarchy-host .graph-description{font-size:10px}
   .hierarchy-host .graph-inspect{display:none}
   .hierarchy-host button{font-family:inherit}.hierarchy-host [hidden]{display:none!important}
-  .hierarchy-host .glass{background:#0a2032ed;border:1px solid #c9c0a924;border-radius:6px}
-  .hierarchy-host input[type=range]{accent-color:#e7cd91}
+  .hierarchy-host .glass{background:#252d2af2;border:1px solid #b8c2ac24;border-radius:8px}
+  .hierarchy-host .graph-node-label{background:#28342fef;color:#bdc8b6;border-color:#8c9d7c55;border-bottom-color:var(--graph-color)}
+  .hierarchy-host .graph-label-chamber{background:#354238f5;color:#e0e5d5}
+  .hierarchy-host .graph-label-lab{color:#eadbb6;border-color:#c5b38166}
+  .hierarchy-host .graph-node-label:hover,.hierarchy-host .graph-node-label.selected{background:#d4d6b6;color:#303c34}
+  .hierarchy-host .graph-status{color:#a0ae98}
+  .hierarchy-host input[type=range]{accent-color:#b6bd96}
 `;
 
 export function installCompanionHierarchy(viewer, ui) {
@@ -33,14 +38,15 @@ export function installCompanionHierarchy(viewer, ui) {
     async mount(host) {
       if (mounted) return;
       mounted=true;
-      const wasActive=graph.active, canvasMark=document.createComment('lab canvas'), graphMark=document.createComment('lab graph');
+      const wasActive=graph.active, background=graph.scene.background.clone(), canvasMark=document.createComment('lab canvas'), graphMark=document.createComment('lab graph');
+      graph.scene.background.set('#252d2a');
       viewer.canvas.before(canvasMark); graph.root.before(graphMark);
       host.classList.add('hierarchy-host');
       const style=document.createElement('style');style.textContent=graphStyles+'\n'+hostStyles;
       host.append(style,viewer.canvas,graph.root);
       release=async()=>{
         cancel(); graph.selected=null;graph.detail.hidden=true;graph.syncScanSelection();
-        graph.close(); canvasMark.replaceWith(viewer.canvas); graphMark.replaceWith(graph.root);
+        graph.close(); graph.scene.background.copy(background); canvasMark.replaceWith(viewer.canvas); graphMark.replaceWith(graph.root);
         style.remove(); mounted=false; viewer.resize();
         if(wasActive) await graph.open(viewer._segments);
       };
