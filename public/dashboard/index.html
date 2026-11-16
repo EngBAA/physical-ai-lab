@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#091c26">
+  <meta name="description" content="Masar's live conversation and lab map.">
+  <title>Masar · Live dashboard</title>
+  <link rel="stylesheet" href="./dashboard.css">
+  <script type="module" src="./dashboard.js"></script>
+</head>
+<body>
+  <svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+    <symbol id="visitor-icon" viewBox="0 0 32 32"><circle cx="16" cy="10" r="5"/><path d="M6 28v-3a10 10 0 0 1 20 0v3"/></symbol>
+    <symbol id="masar-icon" viewBox="0 0 48 32"><ellipse cx="24" cy="16" rx="22" ry="14" fill="currentColor" stroke="none"/><path d="M16 16h16" stroke="#102732" stroke-width="2"/><circle cx="15" cy="16" r="3" fill="#102732" stroke="none"/><circle cx="33" cy="16" r="3" fill="#102732" stroke="none"/></symbol>
+    <symbol id="route-icon" viewBox="0 0 32 32"><circle cx="7" cy="8" r="3"/><circle cx="25" cy="25" r="3"/><path d="M7 11v9a5 5 0 0 0 5 5h10M10 8h10a5 5 0 0 1 5 5v9"/></symbol>
+    <symbol id="mic-icon" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></symbol>
+    <symbol id="sound-icon" viewBox="0 0 24 24"><path d="m11 4-6 5H2v6h3l6 5zM16 8a6 6 0 0 1 0 8M19 4a11 11 0 0 1 0 16"/></symbol>
+  </defs></svg>
+  <header class="topbar">
+    <a class="brand" href="../" aria-label="Physical AI Lab home"><svg><use href="#masar-icon"/></svg><span>masar<span class="brand-dot">.</span></span></a>
+    <div class="top-status"><span class="status-dot" id="connection-dot"></span><span id="connection-status" role="status">Offline</span></div>
+    <button class="connect-button" id="open-connection">Connect robot <span aria-hidden="true">↗</span></button>
+  </header>
+  <main class="workspace">
+    <section class="map-panel" aria-label="Live lab map">
+      <div class="map-heading"><div><span class="eyebrow">PHYSICAL AI LAB</span><h1>Lab map</h1></div><span class="map-mode">Spatial view</span></div>
+      <canvas id="map" tabindex="0" aria-label="Simplified lab map. Drag to rotate, scroll to zoom. Arrow keys pan. Use the view controls to reset."></canvas>
+      <div class="map-tools" aria-label="Map controls"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="top-view" aria-label="Toggle top view" aria-pressed="false">2D</button><button id="reset-view" aria-label="Reset map view">↺</button></div>
+      <div class="map-bottom"><div class="map-key"><span><i class="key-robot"></i>Masar</span><span><i class="key-route"></i>Planned route</span><span><i class="key-target"></i>Selected object</span></div><p id="pose-status" role="status">Waiting for localization</p></div>
+      <div id="map-error" class="map-error" hidden></div>
+    </section>
+    <section class="conversation-panel" aria-label="Conversation">
+      <div class="conversation-bar"><div class="mic-status"><svg><use href="#mic-icon"/></svg><span id="mic-status">Robot microphone</span></div><div class="history-controls"><button id="previous" aria-label="Previous question" disabled>‹</button><span id="turn-count">—</span><button id="next" aria-label="Next question" disabled>›</button></div></div>
+      <div class="conversation-scroll">
+        <article class="visitor section"><div class="section-label"><span class="person-icon"><svg><use href="#visitor-icon"/></svg></span><h2>Visitor</h2><time id="question-time"></time></div><p id="question" class="question placeholder">Waiting for a question…</p></article>
+        <article class="activity section"><div class="section-label"><span class="person-icon"><svg><use href="#route-icon"/></svg></span><h2>Activity</h2><span id="thinking" class="thinking" hidden aria-label="Masar is working"><i></i><i></i><i></i></span></div><ol id="steps" aria-label="Robot activity"><li class="empty-step">Searches and routes will appear here.</li></ol></article>
+        <article class="answer section"><div class="section-label"><span class="person-icon masar-face"><svg><use href="#masar-icon"/></svg></span><h2>Masar</h2><span class="audio-status" id="speaker-status"><svg><use href="#sound-icon"/></svg><span>Robot speaker</span></span></div><p id="answer" class="answer-text placeholder" aria-live="polite" aria-atomic="true">Listening starts on Masar’s microphone.</p><p id="turn-status" class="turn-status"></p></article>
+      </div>
+    </section>
+  </main>
+  <dialog id="connection-dialog"><form id="connection-form"><div class="dialog-heading"><h2>Connect to Masar</h2><button type="button" id="close-dialog" aria-label="Close">×</button></div><p>Use the dashboard address on the robot’s network.</p><label for="endpoint">Dashboard WebSocket</label><input type="url" id="endpoint" placeholder="wss://robot.example/ws" required autocomplete="off" spellcheck="false"><label for="token">Access token</label><input type="password" id="token" autocomplete="off"><p class="form-note">The token stays in this tab. Audio plays on Masar.</p><p id="connection-error" role="alert"></p><div class="dialog-actions"><button type="button" id="disconnect">Disconnect</button><button type="submit" class="primary">Connect</button></div></form></dialog>
+</body>
+</html>
