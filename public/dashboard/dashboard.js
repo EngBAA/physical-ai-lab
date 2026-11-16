@@ -1,7 +1,8 @@
 const $ = (id) => document.getElementById(id);
-const canvas = $('map'), ctx = canvas.getContext('2d');
+const canvas = $('map'), floorLayer = document.createElement('canvas');
+let ctx = canvas.getContext('2d'), floorCacheKey = '';
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-let map, floorImage, chamberLabelBoxes = [], mapLabelBoxes = [], nodes = [], aliases = {}, snapshot, selectedId = null, inspected = null;
+let map, chamberLabelBoxes = [], mapLabelBoxes = [], nodes = [], aliases = {}, snapshot, selectedId = null, inspected = null;
 let socket, retryTimer, shouldReconnect = false, receivedAt = 0, pairedToken = '', endpoint = '';
 let lastRendered = '', poseTarget = null, poseFrom = null, poseChanged = 0;
 const view = {yaw: 0, zoom: 1, panX: 0, panY: 0, top: true};
@@ -153,8 +154,10 @@ function renderConversation() {
 // Orthographic projection in the chassis map frame; theta is radians from +X.
 function project(x, y, z = 0) {
   const dx = x - center[0], dy = y - center[1], c = Math.cos(view.yaw), s = Math.sin(view.yaw);
-  return [width / 2 + (dx * c - dy * s) * scale + view.panX,
-    height / 2 + 20 - (dx * s + dy * c) * scale * (view.top ? 1 : .58) - z * scale + view.panY];
+  // A little oblique relief keeps the default floor rectangular while exposing
+  // the objects' side faces. Every ground position still uses the real map XY.
+  return [width / 2 + (dx * c - dy * s) * scale + view.panX + (view.top ? z * scale * .32 : 0),
+    height / 2 + 20 - (dx * s + dy * c) * scale * (view.top ? 1 : .58) - z * scale * (view.top ? .72 : 1) + view.panY];
 }
 function polygon(points, z = 0) {
   points.forEach(([x, y], i) => { const p = project(x, y, z); i ? ctx.lineTo(...p) : ctx.moveTo(...p); });
@@ -198,48 +201,89 @@ function containsPoint(point, ring) {
   }
   return inside;
 }
-function drawFloorPlan() {
-  const frame = floorBoundary();
-  ctx.beginPath(); polygon(frame);
-  ctx.fillStyle = '#081820';
-  ctx.shadowColor = '#0006'; ctx.shadowBlur = 22; ctx.shadowOffsetY = 8;
-  ctx.fill(); ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-  ctx.save(); ctx.beginPath(); polygon(frame); ctx.clip();
-  // The selected gold floor image is registered back into the chassis frame.
-  // Its original pixels are reused; there is no point-cloud download.
-  if (floorImage && map.plan?.scan) {
-    const scan = map.plan.scan;
-    const [a, b, c] = scan.corners.map(p => project(...p));
-    const [left, top, w, h] = scan.crop;
-    ctx.save();
-    ctx.transform((b[0] - a[0]) / w, (b[1] - a[1]) / w,
-                  (c[0] - a[0]) / h, (c[1] - a[1]) / h, a[0], a[1]);
-    ctx.globalAlpha = .88;
-    ctx.drawImage(floorImage, left, top, w, h, 0, 0, w, h);
-    ctx.restore();
+function screenPolygon(points, fill, stroke, weight = .6, holes = []) {
+  ctx.beginPath();
+  for (const ring of [points, ...holes]) {
+    ring.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p));
+    ctx.closePath();
   }
-  const targets = resolve(inspected || selectedTurn()?.targets);
+  if (fill) { ctx.fillStyle = fill; ctx.fill('evenodd'); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = weight; ctx.stroke(); }
+}
+function prism(ring, base, height, color, pool = false, holes = []) {
+  const tops = [ring, ...holes].map(r => r.map(p => project(...p, base + height)));
+  const faces = [ring, ...holes].flatMap((r, index) => {
+    const bottom = r.map(p => project(...p, base)), top = tops[index];
+    return r.map((_, i) => {
+      const j = (i + 1) % r.length;
+      return {points: [bottom[i], bottom[j], top[j], top[i]],
+        depth: (bottom[i][1] + bottom[j][1]) / 2,
+        color: Math.abs(bottom[j][0] - bottom[i][0]) > Math.abs(bottom[j][1] - bottom[i][1]) ? '#806b47' : '#66583e'};
+    });
+  });
+  faces.sort((a, b) => a.depth - b.depth);
+  for (const face of faces) screenPolygon(face.points, face.color);
+  screenPolygon(tops[0], pool ? '#3d6664' : color, pool ? '#c5b181' : '#e6cf9c88', pool ? 1.5 : .55, tops.slice(1));
+}
+function paintFloorPlan(selectedChambers) {
+  const frame = floorBoundary();
+  prism(frame, -.25, .25, '#21343a');
+  ctx.beginPath(); polygon(frame);
+  ctx.fillStyle = '#2b3d3d'; ctx.fill();
+  ctx.save(); ctx.beginPath(); polygon(frame); ctx.clip();
   for (const chamber of map.plan?.chambers || []) {
-    const selected = targets.some(n => chamber.outlines.some(r => containsPoint(n, r)));
+    const selected = selectedChambers.includes(chamber.id);
     ctx.beginPath(); chamber.outlines.forEach(r => polygon(r));
-    ctx.fillStyle = selected ? '#b6d7c614' : '#b6d7c604'; ctx.fill();
-    ctx.strokeStyle = '#061722'; ctx.lineWidth = 5; ctx.lineJoin = 'round'; ctx.stroke();
-    ctx.strokeStyle = selected ? '#d6ecd7' : '#b6ccc3bb'; ctx.lineWidth = selected ? 2 : 1.25; ctx.stroke();
+    ctx.fillStyle = chamber.color; ctx.fill();
+    if (selected) { ctx.fillStyle = '#cce4d509'; ctx.fill(); }
+    ctx.strokeStyle = selected ? '#d4e3c5' : '#b4c6bcaa'; ctx.lineWidth = selected ? 1.6 : 1; ctx.stroke();
+  }
+  // Crisp registered silhouettes with shaded side faces replace the minimap.
+  // Sort on the ground plane, then by elevation for objects on worktops.
+  const shapes = (map.plan?.objects || []).flatMap(object => object.outlines.map(ring => ({object, ring,
+    depth: Math.max(...ring.map(p => project(...p)[1])) + object.base * scale * .12})));
+  shapes.sort((a, b) => a.depth - b.depth);
+  for (const {object, ring} of shapes) {
+    const shadow = r => r.map(p => { const q = project(...p); return [q[0] - 1.5, q[1] + 2]; });
+    screenPolygon(shadow(ring), '#08182035', null, .6, (object.holes || []).map(shadow));
+  }
+  const gold = ['#bba372', '#b29a6b', '#c1ac7d', '#ac986e'];
+  for (const {object, ring} of shapes) {
+    const color = object.kind === 'structure' ? '#93805a' : gold[Number(object.id.replace('n', '')) % gold.length];
+    prism(ring, object.base, object.height, color, object.kind === 'pool', object.holes);
   }
   ctx.restore();
-  ctx.beginPath(); polygon(frame); ctx.strokeStyle = '#c9b07999'; ctx.lineWidth = 1.25; ctx.stroke();
+  ctx.beginPath(); polygon(frame); ctx.strokeStyle = '#c3c7ab'; ctx.lineWidth = 1.1; ctx.stroke();
   chamberLabelBoxes = [];
   for (const chamber of map.plan?.chambers || []) {
     const p = project(...chamber.anchor);
-    const size = width < 500 ? 10 : 12;
+    const size = width < 500 ? 9 : 11;
     ctx.font = `600 ${size}px Arial`;
     const name = chamber.label.toUpperCase(), w = ctx.measureText(name).width + 18;
     const box = [p[0] - w / 2, p[1] - 11, w, 24];
     chamberLabelBoxes.push(box);
-    ctx.fillStyle = '#091e29ef'; ctx.fillRect(...box);
-    ctx.strokeStyle = '#b6d7c638'; ctx.lineWidth = .6; ctx.strokeRect(...box);
+    ctx.fillStyle = '#102832ed'; ctx.fillRect(...box);
+    ctx.strokeStyle = '#b6d7c62b'; ctx.lineWidth = .6; ctx.strokeRect(...box);
     ctx.fillStyle = '#e3e6d5'; ctx.textAlign = 'center'; ctx.fillText(name, p[0], p[1] + 5);
   }
+}
+function drawFloorPlan() {
+  const turn = selectedTurn();
+  const targets = resolve(inspected || (turn?.targets?.length ? turn.targets : (turn?.route || []).slice(-1)));
+  const selectedChambers = (map.plan?.chambers || []).filter(c =>
+    targets.some(n => c.outlines.some(r => containsPoint(n, r)))).map(c => c.id);
+  const key = JSON.stringify([canvas.width, canvas.height, view, selectedChambers]);
+  if (key !== floorCacheKey) {
+    floorLayer.width = canvas.width; floorLayer.height = canvas.height;
+    const mainContext = ctx;
+    try {
+      ctx = floorLayer.getContext('2d');
+      ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0);
+      paintFloorPlan(selectedChambers);
+      floorCacheKey = key;
+    } finally { ctx = mainContext; }
+  }
+  ctx.drawImage(floorLayer, 0, 0, width, height);
 }
 function draw(now) {
   requestAnimationFrame(draw);
@@ -333,7 +377,7 @@ function updateViewMode() {
   $('top-view').setAttribute('aria-pressed', String(view.top));
   document.querySelector('.map-mode').textContent = view.top ? 'Floor plan' : 'Spatial view';
   canvas.setAttribute('aria-label', view.top
-    ? 'Rectangular lab floor plan with Home, Ghaf, Spark, Space and Hive chamber boundaries. Drag to pan, scroll to zoom. Arrow keys pan; Home resets the view.'
+    ? 'Lab floor plan with raised objects and five rectangular, coloured chambers: Home, Ghaf, Spark, Space and Hive. Drag to pan, scroll to zoom. Arrow keys pan; Home resets the view.'
     : 'Lab map in perspective. Drag to rotate, shift-drag to pan, scroll to zoom. Home resets the view.');
 }
 $('top-view').onclick = () => {
@@ -371,12 +415,8 @@ new ResizeObserver(resize).observe(canvas);
 setInterval(updateStatus, 500);
 requestAnimationFrame(draw);
 try {
-  const response = await fetch('./map.json?v=chambers-20261116'); if (!response.ok) throw new Error();
+  const response = await fetch('./map.json?v=relief-20261116'); if (!response.ok) throw new Error();
   map = await response.json(); if (!map.floor?.length) throw new Error();
-  if (map.plan?.scan) {
-    floorImage = new Image(); floorImage.src = map.plan.scan.image;
-    await floorImage.decode();
-  }
   if (!snapshot?.scene) nodes = map.nodes;
   const xs = map.floor[0].map(p => p[0]), ys = map.floor[0].map(p => p[1]);
   center = [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2];
