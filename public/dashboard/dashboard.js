@@ -205,7 +205,9 @@ function draw(now) {
   for (const ring of map.floor.slice(1)) {
     ctx.beginPath(); polygon(ring, .24); ctx.fillStyle = '#193541'; ctx.fill(); ctx.strokeStyle = '#45636e'; ctx.stroke();
   }
-  const turn = selectedTurn(), targetNodes = resolve(inspected || turn?.targets), targetIds = new Set(targetNodes.map(n => n.id));
+  const turn = selectedTurn();
+  const highlights = turn?.targets?.length ? turn.targets : (turn?.route || []).slice(-1);
+  const targetNodes = resolve(inspected || highlights), targetIds = new Set(targetNodes.map(n => n.id));
   const searched = new Set(resolve(turn?.steps?.flatMap(s => s.nodes || [])).map(n => n.id));
   const route = (turn?.route || []).map(name => resolve([name]).find(n => n.place));
   ctx.setLineDash([5, 5]);
