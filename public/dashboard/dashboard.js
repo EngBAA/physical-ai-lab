@@ -1,10 +1,10 @@
 const $ = (id) => document.getElementById(id);
 const canvas = $('map'), ctx = canvas.getContext('2d');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-let map, nodes = [], aliases = {}, snapshot, selectedId = null, inspected = null;
+let map, floorImage, chamberLabelBoxes = [], mapLabelBoxes = [], nodes = [], aliases = {}, snapshot, selectedId = null, inspected = null;
 let socket, retryTimer, shouldReconnect = false, receivedAt = 0, pairedToken = '', endpoint = '';
 let lastRendered = '', poseTarget = null, poseFrom = null, poseChanged = 0;
-const view = {yaw: -0.85, zoom: 1, panX: 0, panY: 0, top: false};
+const view = {yaw: 0, zoom: 1, panX: 0, panY: 0, top: true};
 let width = 0, height = 0, scale = 1, center = [0, 0];
 
 const label = (name) => String(name || '').replaceAll('_', ' ');
@@ -168,12 +168,17 @@ function dot(p, radius, fill, stroke) {
   if (fill) {ctx.fillStyle = fill; ctx.fill();}
   if (stroke) {ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke();}
 }
-function pill(text, p, color = '#e8c481', background = '#142f3c', align = 'center') {
+function pill(text, p, color = '#e8c481', background = '#142f3c') {
   ctx.font = '11px Arial'; const w = ctx.measureText(text).width + 18, h = 24;
-  const x = p[0] - (align === 'center' ? w / 2 : 0), y = p[1] - h;
+  const options = [0, -30, 32, -60, 62].map(dy => [p[0] - w / 2, p[1] - h + dy, w, h]);
+  const box = options.find(a => !mapLabelBoxes.some(b => a[0] < b[0] + b[2] + 3 && a[0] + a[2] + 3 > b[0] &&
+                                                       a[1] < b[1] + b[3] + 3 && a[1] + a[3] + 3 > b[1])) || options[0];
+  mapLabelBoxes.push(box);
+  const [x,y] = box;
   ctx.beginPath(); ctx.roundRect(x, y, w, h, 5); ctx.fillStyle = background; ctx.fill();
   ctx.strokeStyle = color + '55'; ctx.lineWidth = .8; ctx.stroke();
   ctx.textAlign = 'left'; ctx.fillStyle = color; ctx.fillText(text, x + 9, y + 16);
+  return box;
 }
 function displayPose() {
   if (!poseTarget) return null;
@@ -183,59 +188,112 @@ function displayPose() {
   return {...poseTarget, x: from.x + (poseTarget.x - from.x) * t,
     y: from.y + (poseTarget.y - from.y) * t, theta: from.theta + angle * t};
 }
+function floorBoundary() { return map.plan?.frame || map.floor[0]; }
+function planYaw() { return map?.plan?.yaw || 0; }
+function containsPoint(point, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [x, y] = ring[i], [px, py] = ring[j];
+    if ((y > point.y) !== (py > point.y) && point.x < (px - x) * (point.y - y) / (py - y) + x) inside = !inside;
+  }
+  return inside;
+}
+function drawFloorPlan() {
+  const frame = floorBoundary();
+  ctx.beginPath(); polygon(frame);
+  ctx.fillStyle = '#081820';
+  ctx.shadowColor = '#0006'; ctx.shadowBlur = 22; ctx.shadowOffsetY = 8;
+  ctx.fill(); ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+  ctx.save(); ctx.beginPath(); polygon(frame); ctx.clip();
+  // The selected gold floor image is registered back into the chassis frame.
+  // Its original pixels are reused; there is no point-cloud download.
+  if (floorImage && map.plan?.scan) {
+    const scan = map.plan.scan;
+    const [a, b, c] = scan.corners.map(p => project(...p));
+    const [left, top, w, h] = scan.crop;
+    ctx.save();
+    ctx.transform((b[0] - a[0]) / w, (b[1] - a[1]) / w,
+                  (c[0] - a[0]) / h, (c[1] - a[1]) / h, a[0], a[1]);
+    ctx.globalAlpha = .88;
+    ctx.drawImage(floorImage, left, top, w, h, 0, 0, w, h);
+    ctx.restore();
+  }
+  const targets = resolve(inspected || selectedTurn()?.targets);
+  for (const chamber of map.plan?.chambers || []) {
+    const selected = targets.some(n => chamber.outlines.some(r => containsPoint(n, r)));
+    ctx.beginPath(); chamber.outlines.forEach(r => polygon(r));
+    ctx.fillStyle = selected ? '#b6d7c614' : '#b6d7c604'; ctx.fill();
+    ctx.strokeStyle = '#061722'; ctx.lineWidth = 5; ctx.lineJoin = 'round'; ctx.stroke();
+    ctx.strokeStyle = selected ? '#d6ecd7' : '#b6ccc3bb'; ctx.lineWidth = selected ? 2 : 1.25; ctx.stroke();
+  }
+  ctx.restore();
+  ctx.beginPath(); polygon(frame); ctx.strokeStyle = '#c9b07999'; ctx.lineWidth = 1.25; ctx.stroke();
+  chamberLabelBoxes = [];
+  for (const chamber of map.plan?.chambers || []) {
+    const p = project(...chamber.anchor);
+    const size = width < 500 ? 10 : 12;
+    ctx.font = `600 ${size}px Arial`;
+    const name = chamber.label.toUpperCase(), w = ctx.measureText(name).width + 18;
+    const box = [p[0] - w / 2, p[1] - 11, w, 24];
+    chamberLabelBoxes.push(box);
+    ctx.fillStyle = '#091e29ef'; ctx.fillRect(...box);
+    ctx.strokeStyle = '#b6d7c638'; ctx.lineWidth = .6; ctx.strokeRect(...box);
+    ctx.fillStyle = '#e3e6d5'; ctx.textAlign = 'center'; ctx.fillText(name, p[0], p[1] + 5);
+  }
+}
 function draw(now) {
   requestAnimationFrame(draw);
   if (document.hidden || !map) return;
   ctx.clearRect(0, 0, width, height);
-  // Quiet coordinate grid below the raised floor.
-  for (let x = -12; x <= 22; x += 2) line(project(x, -16, -.55), project(x, 30, -.55), '#7c9caa09');
-  for (let y = -16; y <= 30; y += 2) line(project(-12, y, -.55), project(22, y, -.55), '#7c9caa09');
-  // Display-only slab and occupied islands from the saved occupancy map.
-  ctx.beginPath(); polygon(map.floor[0], -.28); ctx.fillStyle = '#061620'; ctx.shadowColor = '#0008'; ctx.shadowBlur = 22; ctx.shadowOffsetY = 15; ctx.fill(); ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-  for (const ring of map.floor) {
-    for (let i = 0; i < ring.length; i++) {
-      const a = ring[i], b = ring[(i + 1) % ring.length];
-      ctx.beginPath(); ctx.moveTo(...project(...a)); ctx.lineTo(...project(...b));
-      ctx.lineTo(...project(...b, -.28)); ctx.lineTo(...project(...a, -.28)); ctx.closePath();
-      ctx.fillStyle = '#1a3d4b'; ctx.fill();
-    }
-  }
-  ctx.beginPath(); map.floor.forEach(r => polygon(r)); ctx.fillStyle = '#21414d'; ctx.fill('evenodd');
-  ctx.strokeStyle = '#557984'; ctx.lineWidth = .8; ctx.stroke();
-  for (const ring of map.floor.slice(1)) {
-    ctx.beginPath(); polygon(ring, .24); ctx.fillStyle = '#193541'; ctx.fill(); ctx.strokeStyle = '#45636e'; ctx.stroke();
-  }
+  drawFloorPlan();
+  mapLabelBoxes = [...chamberLabelBoxes];
   const turn = selectedTurn();
   const highlights = turn?.targets?.length ? turn.targets : (turn?.route || []).slice(-1);
   const targetNodes = resolve(inspected || highlights), targetIds = new Set(targetNodes.map(n => n.id));
   const searched = new Set(resolve(turn?.steps?.flatMap(s => s.nodes || [])).map(n => n.id));
   const route = (turn?.route || []).map(name => resolve([name]).find(n => n.place));
-  ctx.setLineDash([5, 5]);
   for (let i = 1; i < route.length; i++) {
-    if (route[i - 1] && route[i]) line(project(route[i - 1].x, route[i - 1].y, .07), project(route[i].x, route[i].y, .07), '#e8c481', 1.8);
+    if (route[i - 1] && route[i]) line(project(route[i - 1].x, route[i - 1].y, .07), project(route[i].x, route[i].y, .07), '#081820dd', 7);
+  }
+  ctx.setLineDash([5, 4]);
+  for (let i = 1; i < route.length; i++) {
+    if (route[i - 1] && route[i]) line(project(route[i - 1].x, route[i - 1].y, .07), project(route[i].x, route[i].y, .07), '#efd094', 2.3);
   }
   ctx.setLineDash([]);
   for (const n of route.filter(Boolean)) dot(project(n.x, n.y, .08), 2.5, '#e8c481');
   for (const n of mappedNodes()) {
-    if (targetIds.has(n.id)) continue;
+    if (targetIds.has(n.id) || (!n.place && !searched.has(n.id))) continue;
     const p = project(n.x, n.y, .07);
-    dot(p, n.place ? 2 : 1.25, searched.has(n.id) ? '#b6d7c6' : n.place ? '#76939b' : '#75929b55');
+    dot(p, searched.has(n.id) ? 3 : 1.7, searched.has(n.id) ? '#b6d7c6' : '#9bb3b366');
   }
-  const labels = new Set(['entrance', 'seminar_room', 'kitchen', 'living_room', 'ghaf_chamber', 'logistics', 'production']);
-  const occupied = [];
+  const labels = new Set(['entrance', 'seminar_room', 'kitchen', 'living_room', 'ghaf_chamber', 'logistics', 'manipulation', 'avatar_station', 'dexterous', 'production', 'solar_panels']);
+  const occupied = [...chamberLabelBoxes];
   for (const n of mappedNodes().filter(n => labels.has(n.name) && !targetIds.has(n.id))) {
-    const p = project(n.x, n.y, .12); ctx.font = '10px Arial';
+    const p = project(n.x, n.y, .12);
+    const fontSize = width < 500 ? 9 : 11;
+    ctx.font = `${fontSize}px Arial`;
     const text = label(n.name), w = ctx.measureText(text).width;
-    const box = [p[0] + 5, p[1] - 16, w, 13];
-    if (occupied.some(b => box[0] < b[0] + b[2] + 5 && box[0] + box[2] + 5 > b[0] && Math.abs(box[1] - b[1]) < 17)) continue;
-    occupied.push(box); ctx.fillStyle = '#adc0c4'; ctx.textAlign = 'left'; ctx.fillText(text, box[0], p[1] - 6);
+    const offsets = width < 500 ? [[0,6], [0,-24]] : [[0,6], [0,-24], [38,6], [-38,6], [0,29]];
+    const box = offsets.map(([dx,dy]) => [p[0] + dx - w / 2 - 5, p[1] + dy, w + 10, fontSize + 8])
+      .find(a => !occupied.some(b => a[0] < b[0] + b[2] + 4 && a[0] + a[2] + 4 > b[0] &&
+                                    a[1] < b[1] + b[3] + 4 && a[1] + a[3] + 4 > b[1]));
+    if (!box) continue;
+    occupied.push(box); mapLabelBoxes.push(box);
+    if (box[1] !== p[1] + 6 || box[0] !== p[0] - w / 2 - 5)
+      line(p, [box[0] + box[2] / 2, box[1] + box[3] / 2], '#a3b7b644', .8);
+    ctx.fillStyle = '#1b3540ee'; ctx.fillRect(...box);
+    ctx.fillStyle = '#d0d8d2'; ctx.textAlign = 'center';
+    ctx.fillText(text, box[0] + box[2] / 2, box[1] + fontSize + 3);
   }
   targetNodes.forEach((n, i) => {
     const p = project(n.x, n.y, .12), pulse = reducedMotion ? .5 : (Math.sin(now / 420) + 1) / 2;
     dot(p, 9 + pulse * 7, '#e8c48108', `rgba(232,196,129,${.65 - pulse * .4})`);
     dot(p, 3.5, '#e8c481');
-    const top = [p[0], p[1] - 23 - (i % 2) * 25]; line(p, top, '#e8c48177');
-    if (i < 4) pill(label(n.name), top);
+    const top = [p[0], p[1] - 23 - (i % 2) * 25];
+    if (i < 4) {
+      const box = pill(label(n.name), top);
+      line(p, [box[0] + box[2] / 2, box[1] + (p[1] > box[1] ? box[3] : 0)], '#e8c48177');
+    }
   });
   const pose = displayPose();
   if (pose && pose.map === map.name) {
@@ -259,18 +317,31 @@ function resize() {
 function fitScale() {
   if (!map) return;
   const c = Math.cos(view.yaw), s = Math.sin(view.yaw);
-  const points = map.floor[0].map(([x,y]) => [x * c - y * s, (x * s + y * c) * (view.top ? 1 : .58)]);
+  const points = floorBoundary().map(([x,y]) => [x * c - y * s, (x * s + y * c) * (view.top ? 1 : .58)]);
   const xs = points.map(p => p[0]), ys = points.map(p => p[1]);
   const midX = (Math.min(...xs) + Math.max(...xs)) / 2;
   const midY = (Math.min(...ys) + Math.max(...ys)) / 2 / (view.top ? 1 : .58);
   center = [midX * c + midY * s, -midX * s + midY * c];
-  scale = Math.min((width - 95) / (Math.max(...xs) - Math.min(...xs)), (height - 215) / (Math.max(...ys) - Math.min(...ys))) * view.zoom;
+  scale = Math.min((width - 95) / (Math.max(...xs) - Math.min(...xs)), (height - 190) / (Math.max(...ys) - Math.min(...ys))) * view.zoom;
 }
-function reset() { Object.assign(view, {yaw:-.85, zoom:1, panX:0, panY:0, top:false}); inspected = null; $('top-view').textContent = '2D'; $('top-view').setAttribute('aria-pressed', 'false'); fitScale(); }
+function reset() { Object.assign(view, {yaw:planYaw(), zoom:1, panX:0, panY:0, top:true}); inspected = null; updateViewMode(); fitScale(); }
 $('zoom-in').onclick = () => {view.zoom = Math.min(3, view.zoom * 1.15); fitScale();};
 $('zoom-out').onclick = () => {view.zoom = Math.max(.6, view.zoom / 1.15); fitScale();};
 $('reset-view').onclick = reset;
-$('top-view').onclick = () => {view.top = !view.top; $('top-view').textContent = view.top ? '3D' : '2D'; $('top-view').setAttribute('aria-pressed', String(view.top)); fitScale();};
+function updateViewMode() {
+  $('top-view').textContent = view.top ? '3D' : '2D';
+  $('top-view').setAttribute('aria-pressed', String(view.top));
+  document.querySelector('.map-mode').textContent = view.top ? 'Floor plan' : 'Spatial view';
+  canvas.setAttribute('aria-label', view.top
+    ? 'Rectangular lab floor plan with Home, Ghaf, Spark, Space and Hive chamber boundaries. Drag to pan, scroll to zoom. Arrow keys pan; Home resets the view.'
+    : 'Lab map in perspective. Drag to rotate, shift-drag to pan, scroll to zoom. Home resets the view.');
+}
+$('top-view').onclick = () => {
+  view.top = !view.top;
+  view.yaw = view.top ? planYaw() : planYaw() - .55;
+  view.panX = view.panY = 0;
+  updateViewMode(); fitScale();
+};
 let drag;
 canvas.onpointerdown = (event) => {drag = [event.clientX, event.clientY]; canvas.setPointerCapture(event.pointerId);};
 canvas.onpointermove = (event) => {
@@ -302,9 +373,14 @@ requestAnimationFrame(draw);
 try {
   const response = await fetch('./map.json'); if (!response.ok) throw new Error();
   map = await response.json(); if (!map.floor?.length) throw new Error();
+  if (map.plan?.scan) {
+    floorImage = new Image(); floorImage.src = map.plan.scan.image;
+    await floorImage.decode();
+  }
   if (!snapshot?.scene) nodes = map.nodes;
   const xs = map.floor[0].map(p => p[0]), ys = map.floor[0].map(p => p[1]);
-  center = [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2]; resize();
+  center = [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2];
+  view.yaw = planYaw(); updateViewMode(); resize();
 } catch {
   $('map-error').hidden = false; $('map-error').textContent = 'The lab map could not load. Refresh to try again.';
 }

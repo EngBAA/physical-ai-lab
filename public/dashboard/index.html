@@ -24,10 +24,10 @@
   </header>
   <main class="workspace">
     <section class="map-panel" aria-label="Live lab map">
-      <div class="map-heading"><div><span class="eyebrow">PHYSICAL AI LAB</span><h1>Lab map</h1></div><span class="map-mode">Spatial view</span></div>
-      <canvas id="map" tabindex="0" aria-label="Simplified lab map. Drag to rotate, scroll to zoom. Arrow keys pan. Use the view controls to reset."></canvas>
-      <div class="map-tools" aria-label="Map controls"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="top-view" aria-label="Toggle top view" aria-pressed="false">2D</button><button id="reset-view" aria-label="Reset map view">↺</button></div>
-      <div class="map-bottom"><div class="map-key"><span><i class="key-robot"></i>Masar</span><span><i class="key-route"></i>Planned route</span><span><i class="key-target"></i>Selected object</span></div><p id="pose-status" role="status">Waiting for localization</p></div>
+      <div class="map-heading"><div><span class="eyebrow">PHYSICAL AI LAB</span><h1>Lab map</h1></div><span class="map-mode">Floor plan</span></div>
+      <canvas id="map" tabindex="0" aria-label="Rectangular lab floor plan. Drag to pan, scroll to zoom. Arrow keys pan; Home resets the view."></canvas>
+      <div class="map-tools" aria-label="Map controls"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="top-view" aria-label="Toggle top view" aria-pressed="true">3D</button><button id="reset-view" aria-label="Reset map view">↺</button></div>
+      <div class="map-bottom"><div class="map-key"><span><i class="key-chamber"></i>Chambers</span><span><i class="key-robot"></i>Masar</span><span><i class="key-route"></i>Planned route</span><span><i class="key-target"></i>Selected object</span></div><p id="pose-status" role="status">Waiting for localization</p></div>
       <div id="map-error" class="map-error" hidden></div>
     </section>
     <section class="conversation-panel" aria-label="Conversation">
