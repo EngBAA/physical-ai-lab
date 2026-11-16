@@ -371,7 +371,7 @@ new ResizeObserver(resize).observe(canvas);
 setInterval(updateStatus, 500);
 requestAnimationFrame(draw);
 try {
-  const response = await fetch('./map.json'); if (!response.ok) throw new Error();
+  const response = await fetch('./map.json?v=chambers-20261116'); if (!response.ok) throw new Error();
   map = await response.json(); if (!map.floor?.length) throw new Error();
   if (map.plan?.scan) {
     floorImage = new Image(); floorImage.src = map.plan.scan.image;
