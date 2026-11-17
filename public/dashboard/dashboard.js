@@ -192,6 +192,7 @@ function displayPose() {
     y: from.y + (poseTarget.y - from.y) * t, theta: from.theta + angle * t};
 }
 function floorBoundary() { return map.plan?.frame || map.floor[0]; }
+function floorZones() { return [...(map.plan?.chambers || []), ...(map.plan?.areas || [])]; }
 function planYaw() { return map?.plan?.yaw || 0; }
 function containsPoint(point, ring) {
   let inside = false;
@@ -231,13 +232,20 @@ function paintFloorPlan(selectedChambers) {
   ctx.beginPath(); polygon(frame);
   ctx.fillStyle = '#2b3d3d'; ctx.fill();
   ctx.save(); ctx.beginPath(); polygon(frame); ctx.clip();
-  for (const chamber of map.plan?.chambers || []) {
+  for (const chamber of floorZones()) {
     const selected = selectedChambers.includes(chamber.id);
     ctx.beginPath(); chamber.outlines.forEach(r => polygon(r));
     ctx.fillStyle = chamber.color; ctx.fill();
     if (selected) { ctx.fillStyle = '#cce4d509'; ctx.fill(); }
-    ctx.strokeStyle = selected ? '#d4e3c5' : '#b4c6bcaa'; ctx.lineWidth = selected ? 1.6 : 1; ctx.stroke();
+    if (selected) { ctx.strokeStyle = '#d4e3c5'; ctx.lineWidth = 1.5; ctx.stroke(); }
   }
+  // Dashed lines mark open chamber transitions in the supplied sketch.
+  // Only the actual footprint gets a continuous outside edge.
+  for (const divider of map.plan?.dividers || []) {
+    ctx.setLineDash(divider.open ? [4, 5] : []);
+    line(project(...divider.from), project(...divider.to), '#b4c6bcaa', .9);
+  }
+  ctx.setLineDash([]);
   // Crisp registered silhouettes with shaded side faces replace the minimap.
   // Sort on the ground plane, then by elevation for objects on worktops.
   const shapes = (map.plan?.objects || []).flatMap(object => object.outlines.map(ring => ({object, ring,
@@ -255,22 +263,32 @@ function paintFloorPlan(selectedChambers) {
   ctx.restore();
   ctx.beginPath(); polygon(frame); ctx.strokeStyle = '#c3c7ab'; ctx.lineWidth = 1.1; ctx.stroke();
   chamberLabelBoxes = [];
-  for (const chamber of map.plan?.chambers || []) {
+  for (const chamber of floorZones()) {
     const p = project(...chamber.anchor);
-    const size = width < 500 ? 9 : 11;
-    ctx.font = `600 ${size}px Arial`;
-    const name = chamber.label.toUpperCase(), w = ctx.measureText(name).width + 18;
-    const box = [p[0] - w / 2, p[1] - 11, w, 24];
+    let size = width < 500 ? 9 : 11;
+    const auxiliary = !!chamber.nodeNames;
+    const name = auxiliary ? chamber.label : chamber.label.toUpperCase();
+    const xs = chamber.outlines.flat().map(v => project(...v)[0]);
+    const available = Math.max(25, Math.max(...xs) - Math.min(...xs) - (auxiliary ? 2 : 6));
+    ctx.font = `${auxiliary ? 500 : 600} ${size}px Arial`;
+    const lines = auxiliary && ctx.measureText(name).width + 8 > available ? name.split(' ') : [name];
+    const longest = Math.max(...lines.map(t => ctx.measureText(t).width));
+    if (auxiliary) size *= Math.min(1, (available - 8) / longest);
+    ctx.font = `${auxiliary ? 500 : 600} ${size}px Arial`;
+    const w = Math.max(...lines.map(t => ctx.measureText(t).width)) + (auxiliary ? 8 : 18);
+    const h = Math.max(22, lines.length * (size + 3) + 8);
+    const box = [p[0] - w / 2, p[1] - h / 2, w, h];
     chamberLabelBoxes.push(box);
     ctx.fillStyle = '#102832ed'; ctx.fillRect(...box);
     ctx.strokeStyle = '#b6d7c62b'; ctx.lineWidth = .6; ctx.strokeRect(...box);
-    ctx.fillStyle = '#e3e6d5'; ctx.textAlign = 'center'; ctx.fillText(name, p[0], p[1] + 5);
+    ctx.fillStyle = auxiliary ? '#c4d1c9' : '#e3e6d5'; ctx.textAlign = 'center';
+    lines.forEach((text, i) => ctx.fillText(text, p[0], box[1] + (h - lines.length * (size + 3)) / 2 + size + i * (size + 3)));
   }
 }
 function drawFloorPlan() {
   const turn = selectedTurn();
   const targets = resolve(inspected || (turn?.targets?.length ? turn.targets : (turn?.route || []).slice(-1)));
-  const selectedChambers = (map.plan?.chambers || []).filter(c =>
+  const selectedChambers = floorZones().filter(c =>
     targets.some(n => c.outlines.some(r => containsPoint(n, r)))).map(c => c.id);
   const key = JSON.stringify([canvas.width, canvas.height, view, selectedChambers]);
   if (key !== floorCacheKey) {
@@ -310,7 +328,7 @@ function draw(now) {
     const p = project(n.x, n.y, .07);
     dot(p, searched.has(n.id) ? 3 : 1.7, searched.has(n.id) ? '#b6d7c6' : '#9bb3b366');
   }
-  const labels = new Set(['entrance', 'seminar_room', 'kitchen', 'living_room', 'ghaf_chamber', 'logistics', 'manipulation', 'avatar_station', 'dexterous', 'production', 'solar_panels']);
+  const labels = new Set(['kitchen', 'living_room', 'logistics', 'manipulation', 'dexterous', 'production', 'solar_panels']);
   const occupied = [...chamberLabelBoxes];
   for (const n of mappedNodes().filter(n => labels.has(n.name) && !targetIds.has(n.id))) {
     const p = project(n.x, n.y, .12);
@@ -377,7 +395,7 @@ function updateViewMode() {
   $('top-view').setAttribute('aria-pressed', String(view.top));
   document.querySelector('.map-mode').textContent = view.top ? 'Floor plan' : 'Spatial view';
   canvas.setAttribute('aria-label', view.top
-    ? 'Lab floor plan with raised objects and five rectangular, coloured chambers: Home, Ghaf, Spark, Space and Hive. Drag to pan, scroll to zoom. Arrow keys pan; Home resets the view.'
+    ? 'Lab floor plan with raised objects, Home, Ghaf, Spark, Space and Hive chambers, an entrance, and separate seminar and avatar rooms. Drag to pan, scroll to zoom. Arrow keys pan; Home resets the view.'
     : 'Lab map in perspective. Drag to rotate, shift-drag to pan, scroll to zoom. Home resets the view.');
 }
 $('top-view').onclick = () => {
@@ -415,7 +433,7 @@ new ResizeObserver(resize).observe(canvas);
 setInterval(updateStatus, 500);
 requestAnimationFrame(draw);
 try {
-  const response = await fetch('./map.json?v=relief-20261116'); if (!response.ok) throw new Error();
+  const response = await fetch('./map.json?v=layout-20261117'); if (!response.ok) throw new Error();
   map = await response.json(); if (!map.floor?.length) throw new Error();
   if (!snapshot?.scene) nodes = map.nodes;
   const xs = map.floor[0].map(p => p[0]), ys = map.floor[0].map(p => p[1]);

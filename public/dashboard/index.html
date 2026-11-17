@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#091c26">
   <meta name="description" content="Masar's live conversation and lab map.">
   <title>Masar · Live dashboard</title>
-  <link rel="stylesheet" href="./dashboard.css?v=relief-20261116">
-  <script type="module" src="./dashboard.js?v=relief-20261116"></script>
+  <link rel="stylesheet" href="./dashboard.css?v=layout-20261117">
+  <script type="module" src="./dashboard.js?v=layout-20261117"></script>
 </head>
 <body>
   <svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -25,7 +25,7 @@
   <main class="workspace">
     <section class="map-panel" aria-label="Live lab map">
       <div class="map-heading"><div><span class="eyebrow">PHYSICAL AI LAB</span><h1>Lab map</h1></div><span class="map-mode">Floor plan</span></div>
-      <canvas id="map" tabindex="0" aria-label="Rectangular lab floor plan. Drag to pan, scroll to zoom. Arrow keys pan; Home resets the view."></canvas>
+      <canvas id="map" tabindex="0" aria-label="Lab floor plan with chamber and room boundaries. Drag to pan, scroll to zoom. Arrow keys pan; Home resets the view."></canvas>
       <div class="map-tools" aria-label="Map controls"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="top-view" aria-label="Toggle top view" aria-pressed="true">3D</button><button id="reset-view" aria-label="Reset map view">↺</button></div>
       <div class="map-bottom"><div class="map-key"><span><i class="key-chamber"></i>Chambers</span><span><i class="key-robot"></i>Masar</span><span><i class="key-route"></i>Planned route</span><span><i class="key-target"></i>Selected object</span></div><p id="pose-status" role="status">Waiting for localization</p></div>
       <div id="map-error" class="map-error" hidden></div>
