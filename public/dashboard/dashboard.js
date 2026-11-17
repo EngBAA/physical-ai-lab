@@ -4,9 +4,36 @@ let ctx = canvas.getContext('2d'), floorCacheKey = '';
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let map, chamberLabelBoxes = [], mapLabelBoxes = [], nodes = [], aliases = {}, snapshot, selectedId = null, inspected = null;
 let socket, retryTimer, shouldReconnect = false, receivedAt = 0, pairedToken = '', endpoint = '';
-let lastRendered = '', poseTarget = null, poseFrom = null, poseChanged = 0;
+let lastRendered = '', renderedTurnId = null, poseTarget = null, poseFrom = null, poseChanged = 0;
 const view = {yaw: 0, zoom: 1, panX: 0, panY: 0, top: true};
 let width = 0, height = 0, scale = 1, center = [0, 0];
+let displayMode = 'split', displayScale = 1, mapLoading;
+
+function requestedView() {
+  const mode = new URL(location.href).searchParams.get('view');
+  return ['map', 'chat'].includes(mode) ? mode : 'split';
+}
+function setDisplay(mode) {
+  displayMode = mode;
+  document.documentElement.dataset.view = mode;
+  document.title = `Masar · ${mode === 'map' ? 'Lab map' : mode === 'chat' ? 'Conversation' : 'Live dashboard'}`;
+  document.querySelector('.map-panel').hidden = mode === 'chat';
+  document.querySelector('.conversation-panel').hidden = mode === 'map';
+  for (const link of document.querySelectorAll('.view-switch a')) {
+    const selected = link.dataset.view === mode;
+    if (selected) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  }
+  if (mode === 'map') { selectedId = turns().at(-1)?.id || null; inspected = null; }
+  lastRendered = '';
+  renderConversation();
+  updateStatus();
+  if (mode !== 'chat') {
+    resize();
+    if (map) reset();
+    else loadMap();
+  }
+}
 
 const label = (name) => String(name || '').replaceAll('_', ' ');
 const fresh = () => socket?.readyState === WebSocket.OPEN && performance.now() - receivedAt < 2500;
@@ -57,7 +84,7 @@ function openSocket() {
       const data = JSON.parse(event.data);
       if (data.type !== 'snapshot' || !Array.isArray(data.turns)) return;
       const previousNewest = turns().at(-1)?.id;
-      const followedLatest = !selectedId || selectedId === previousNewest;
+      const followedLatest = displayMode === 'map' || !selectedId || selectedId === previousNewest;
       snapshot = data; receivedAt = performance.now();
       if (data.scene) { nodes = data.scene.nodes || []; aliases = data.scene.aliases || {}; }
       if (followedLatest || !turns().some(t => t.id === selectedId)) selectedId = turns().at(-1)?.id || null;
@@ -118,6 +145,10 @@ function renderConversation() {
   const key = JSON.stringify(turn);
   if (key === lastRendered) return;
   lastRendered = key;
+  if (renderedTurnId !== turn?.id) {
+    document.querySelector('.conversation-scroll').scrollTop = 0;
+    renderedTurnId = turn?.id;
+  }
   $('question').textContent = turn?.question || (turn ? 'Receiving your question…' : 'Waiting for a question…');
   $('question').classList.toggle('placeholder', !turn?.question);
   $('question-time').textContent = turn ? new Date(turn.at * 1000).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : '';
@@ -134,11 +165,14 @@ function renderConversation() {
     if (step.nodes?.length) {
       const chips = document.createElement('div'); chips.className = 'nodes';
       for (const name of step.nodes) {
-        const button = document.createElement('button'); button.className = 'node-chip'; button.textContent = label(name);
-        const targets = resolve([name]); button.disabled = !targets.length;
-        button.title = targets.length ? 'Highlight on map' : 'No registered map position';
-        button.onclick = () => { inspected = [name]; };
-        chips.append(button);
+        const chip = document.createElement(displayMode === 'chat' ? 'span' : 'button');
+        chip.className = 'node-chip'; chip.textContent = label(name);
+        if (displayMode !== 'chat') {
+          const targets = resolve([name]); chip.disabled = !targets.length;
+          chip.title = targets.length ? 'Highlight on map' : 'No registered map position';
+          chip.onclick = () => { inspected = [name]; };
+        }
+        chips.append(chip);
       }
       li.append(chips);
     }
@@ -197,7 +231,10 @@ function displayPose() {
 }
 function floorBoundary() { return map.plan?.frame || map.floor[0]; }
 function floorZones() { return [...(map.plan?.chambers || []), ...(map.plan?.areas || [])]; }
-function planYaw() { return map?.plan?.yaw || 0; }
+function planYaw() {
+  // A wide TV uses the long side of the floor plan; portrait screens retain it upright.
+  return (map?.plan?.yaw || 0) + (displayMode === 'map' && width > height * 1.2 ? Math.PI / 2 : 0);
+}
 function containsPoint(point, ring) {
   let inside = false;
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
@@ -396,7 +433,7 @@ function drawFloorPlan() {
 }
 function draw(now) {
   requestAnimationFrame(draw);
-  if (document.hidden || !map) return;
+  if (document.hidden || displayMode === 'chat' || !map || !width || !height) return;
   ctx.clearRect(0, 0, width, height);
   drawFloorPlan();
   mapLabelBoxes = [...chamberLabelBoxes];
@@ -462,9 +499,16 @@ function draw(now) {
   }
 }
 function resize() {
-  const box = canvas.getBoundingClientRect(); width = box.width; height = box.height;
+  if (displayMode === 'chat') return;
+  const box = canvas.getBoundingClientRect();
+  if (!box.width || !box.height) return;
+  const previousYaw = planYaw();
+  displayScale = displayMode === 'map' ? Math.max(1, Math.min(2.5, box.width / 1500)) : 1;
+  width = box.width / displayScale; height = box.height / displayScale;
   const ratio = Math.min(devicePixelRatio || 1, 2);
-  canvas.width = width * ratio; canvas.height = height * ratio; ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  canvas.width = Math.round(box.width * ratio); canvas.height = Math.round(box.height * ratio);
+  ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0);
+  if (view.top && Math.abs(view.yaw - previousYaw) < .001) view.yaw = planYaw();
   fitScale();
 }
 function fitScale() {
@@ -475,7 +519,7 @@ function fitScale() {
   const midX = (Math.min(...xs) + Math.max(...xs)) / 2;
   const midY = (Math.min(...ys) + Math.max(...ys)) / 2 / floorTilt();
   center = [midX * c + midY * s, -midX * s + midY * c];
-  scale = Math.min((width - 95) / (Math.max(...xs) - Math.min(...xs)), (height - 190) / (Math.max(...ys) - Math.min(...ys))) * view.zoom;
+  scale = Math.min(Math.max(80, width - 95) / (Math.max(...xs) - Math.min(...xs)), Math.max(80, height - 190) / (Math.max(...ys) - Math.min(...ys))) * view.zoom;
 }
 function reset() { Object.assign(view, {yaw:planYaw(), zoom:1, panX:0, panY:0, top:true}); inspected = null; updateViewMode(); fitScale(); }
 $('zoom-in').onclick = () => {view.zoom = Math.min(3, view.zoom * 1.15); fitScale();};
@@ -499,7 +543,7 @@ let drag;
 canvas.onpointerdown = (event) => {drag = [event.clientX, event.clientY]; canvas.setPointerCapture(event.pointerId);};
 canvas.onpointermove = (event) => {
   if (!drag) return;
-  if (event.shiftKey || view.top) {view.panX += event.clientX - drag[0]; view.panY += event.clientY - drag[1];}
+  if (event.shiftKey || view.top) {view.panX += (event.clientX - drag[0]) / displayScale; view.panY += (event.clientY - drag[1]) / displayScale;}
   else view.yaw += (event.clientX - drag[0]) * .006;
   drag = [event.clientX, event.clientY]; fitScale();
 };
@@ -520,19 +564,52 @@ $('connection-form').onsubmit = event => {
   try {connect($('endpoint').value.trim(), $('token').value);} catch (error) {errorText(error.message);}
 };
 try { $('endpoint').value = localStorage.getItem('masar-dashboard-endpoint') || ''; } catch { /* private browser */ }
+for (const link of document.querySelectorAll('.view-switch a')) {
+  const url = new URL(location.href); url.searchParams.set('view', link.dataset.view);
+  link.href = url.href;
+  link.onclick = event => {
+    if (event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    history.pushState(null, '', link.href);
+    setDisplay(link.dataset.view);
+  };
+}
+addEventListener('popstate', () => setDisplay(requestedView()));
+const fullscreen = $('fullscreen');
+fullscreen.hidden = !document.fullscreenEnabled;
+fullscreen.onclick = async () => {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch {
+    errorText('Fullscreen is unavailable in this browser. You can still use the selected view.');
+    $('connection-dialog').showModal();
+  }
+};
+document.addEventListener('fullscreenchange', () => {
+  const label = document.fullscreenElement ? 'Exit fullscreen' : 'Enter fullscreen';
+  fullscreen.setAttribute('aria-label', label); fullscreen.title = label;
+});
 new ResizeObserver(resize).observe(canvas);
 setInterval(updateStatus, 500);
 requestAnimationFrame(draw);
-try {
-  const response = await fetch('./map.json?v=map-refined-20261117'); if (!response.ok) throw new Error();
-  map = await response.json(); if (!map.floor?.length) throw new Error();
-  if (!snapshot?.scene) nodes = map.nodes;
-  const xs = map.floor[0].map(p => p[0]), ys = map.floor[0].map(p => p[1]);
-  center = [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2];
-  view.yaw = planYaw(); updateViewMode(); resize();
-} catch {
-  $('map-error').hidden = false; $('map-error').textContent = 'The lab map could not load. Refresh to try again.';
+function loadMap() {
+  if (mapLoading) return mapLoading;
+  mapLoading = (async () => {
+    try {
+      const response = await fetch('./map.json?v=map-refined-20261117'); if (!response.ok) throw new Error();
+      map = await response.json(); if (!map.floor?.length) throw new Error();
+      if (!nodes.length) nodes = map.nodes;
+      resize(); reset();
+      $('map-error').hidden = true;
+    } catch {
+      map = null;
+      $('map-error').hidden = false; $('map-error').textContent = 'The lab map could not load. Refresh to try again.';
+    } finally { mapLoading = null; }
+  })();
+  return mapLoading;
 }
+setDisplay(requestedView());
 // The local service and its HTTPS proxy serve this page and feed together.
 // Wait for the access token before connecting; never send an empty credential.
 if (!location.hostname.endsWith('github.io') && !$('endpoint').value) {

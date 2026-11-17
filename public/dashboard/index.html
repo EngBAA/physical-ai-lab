@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#091c26">
   <meta name="description" content="Masar's live conversation and lab map.">
   <title>Masar · Live dashboard</title>
-  <link rel="stylesheet" href="./dashboard.css?v=map-refined-20261117">
-  <script type="module" src="./dashboard.js?v=ros-dashboard-20261117"></script>
+  <link rel="stylesheet" href="./dashboard.css?v=display-views-20261117">
+  <script type="module" src="./dashboard.js?v=display-views-20261117"></script>
 </head>
 <body>
   <svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -19,8 +19,16 @@
   </defs></svg>
   <header class="topbar">
     <a class="brand" href="../" aria-label="Physical AI Lab home"><svg><use href="#masar-icon"/></svg><span>masar<span class="brand-dot">.</span></span></a>
+    <nav class="view-switch" aria-label="Display view">
+      <a href="?view=split" data-view="split">Dashboard</a>
+      <a href="?view=map" data-view="map">Map</a>
+      <a href="?view=chat" data-view="chat">Chat</a>
+    </nav>
     <div class="top-status"><span class="status-dot" id="connection-dot"></span><span id="connection-status" role="status">Offline</span></div>
-    <button class="connect-button" id="open-connection">Connect robot <span aria-hidden="true">↗</span></button>
+    <div class="header-actions">
+      <button id="fullscreen" class="fullscreen-button" aria-label="Enter fullscreen" title="Enter fullscreen" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg></button>
+      <button class="connect-button" id="open-connection">Connect robot <span aria-hidden="true">↗</span></button>
+    </div>
   </header>
   <main class="workspace">
     <section class="map-panel" aria-label="Live lab map">
