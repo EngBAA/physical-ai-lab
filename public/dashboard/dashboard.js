@@ -90,7 +90,7 @@ function openSocket() {
 }
 function updateStatus() {
   const online = fresh(), state = snapshot?.status;
-  if (online) connectedText(state?.agent === 'ready' ? 'Live' : 'Agent reconnecting', state?.agent === 'ready');
+  if (online) connectedText(({ready: 'Live', connecting: 'Waiting for agent', reconnecting: 'Agent reconnecting', offline: 'Agent offline'})[state?.agent] || 'Waiting for agent', state?.agent === 'ready');
   else if (socket?.readyState === WebSocket.OPEN) connectedText('Updates paused');
   const mic = online ? state?.microphone : 'unknown';
   $('mic-status').textContent = ({unmuted: 'Microphone on', muted_or_off: 'Microphone muted', unavailable: 'Microphone unavailable'})[mic] || 'Robot microphone';
@@ -533,8 +533,8 @@ try {
 } catch {
   $('map-error').hidden = false; $('map-error').textContent = 'The lab map could not load. Refresh to try again.';
 }
-// The robot serves the same page and feed together. Hosted Pages asks for pairing.
-if (location.port === '8767') {
+// The local service and its HTTPS proxy serve this page and feed together.
+// Wait for the access token before connecting; never send an empty credential.
+if (!location.hostname.endsWith('github.io') && !$('endpoint').value) {
   $('endpoint').value = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
-  connect($('endpoint').value, '');
 }
