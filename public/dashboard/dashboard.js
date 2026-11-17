@@ -151,13 +151,17 @@ function renderConversation() {
   }
 }
 
-// Orthographic projection in the chassis map frame; theta is radians from +X.
+// One affine camera for floors, objects, paths and measured robot positions.
+// Equal ground vectors always project to equal screen vectors: opposite edges
+// stay parallel at every zoom and rotation, with no perspective convergence.
+const isoPitch = Math.atan(1 / Math.sqrt(2));
+function floorTilt() { return view.top ? 1 : Math.sin(isoPitch); }
 function project(x, y, z = 0) {
   const dx = x - center[0], dy = y - center[1], c = Math.cos(view.yaw), s = Math.sin(view.yaw);
   // A little oblique relief keeps the default floor rectangular while exposing
   // the objects' side faces. Every ground position still uses the real map XY.
   return [width / 2 + (dx * c - dy * s) * scale + view.panX + (view.top ? z * scale * .32 : 0),
-    height / 2 + 20 - (dx * s + dy * c) * scale * (view.top ? 1 : .58) - z * scale * (view.top ? .72 : 1) + view.panY];
+    height / 2 + 20 - (dx * s + dy * c) * scale * floorTilt() - z * scale * (view.top ? .72 : Math.cos(isoPitch)) + view.panY];
 }
 function polygon(points, z = 0) {
   points.forEach(([x, y], i) => { const p = project(x, y, z); i ? ctx.lineTo(...p) : ctx.moveTo(...p); });
@@ -211,22 +215,111 @@ function screenPolygon(points, fill, stroke, weight = .6, holes = []) {
   if (fill) { ctx.fillStyle = fill; ctx.fill('evenodd'); }
   if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = weight; ctx.stroke(); }
 }
-function prism(ring, base, height, color, pool = false, holes = []) {
+function shade(color, factor) {
+  const rgb = color.slice(1).match(/../g).map(v => Math.min(255, Math.round(parseInt(v, 16) * factor)));
+  return `rgb(${rgb.join(',')})`;
+}
+function topFinish(points, color) {
+  const ys = points.map(p => p[1]), xs = points.map(p => p[0]);
+  const gradient = ctx.createLinearGradient(Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys) + .1);
+  gradient.addColorStop(0, shade(color, 1.09)); gradient.addColorStop(1, shade(color, .96));
+  return gradient;
+}
+function surfaceDetail(ring, z, surface) {
+  if (ring.length !== 4 || !surface || ['wood','wall','door'].includes(surface)) return;
+  const at = (u, v) => project(...[0, 1].map(i =>
+    (1 - v) * ((1 - u) * ring[0][i] + u * ring[1][i]) + v * ((1 - u) * ring[3][i] + u * ring[2][i])), z);
+  const edge = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  if (Math.min(edge(at(0, 0), at(1, 0)), edge(at(0, 0), at(0, 1))) < 4) return;
+  const inset = [[.07,.07],[.93,.07],[.93,.93],[.07,.93]].map(([u,v]) => at(u,v));
+  if (surface === 'screen' || surface === 'solar') {
+    screenPolygon(inset, topFinish(inset, surface === 'solar' ? '#344958' : '#3a4e55'), '#e3cfaa66', .5);
+    if (surface === 'solar') {
+      for (const u of [.28,.5,.72]) line(at(u,.07),at(u,.93),'#b2cfce66',.45);
+      for (const v of [.36,.64]) line(at(.07,v),at(.93,v),'#b2cfce66',.45);
+    } else line(at(.14,.16),at(.6,.16),'#b9d9d366',.55);
+  } else {
+    screenPolygon(inset, null, '#f3dfb82e', .5);
+  }
+}
+function prism(ring, base, height, color, holes = [], surface = null) {
   const tops = [ring, ...holes].map(r => r.map(p => project(...p, base + height)));
   const faces = [ring, ...holes].flatMap((r, index) => {
     const bottom = r.map(p => project(...p, base)), top = tops[index];
+    const area = bottom.reduce((sum, p, i) => {
+      const next = bottom[(i + 1) % bottom.length]; return sum + p[0] * next[1] - next[0] * p[1];
+    }, 0);
+    const winding = Math.sign(area) * (index ? -1 : 1);
     return r.map((_, i) => {
       const j = (i + 1) % r.length;
+      const dx = bottom[j][0] - bottom[i][0], dy = bottom[j][1] - bottom[i][1];
+      const facing = winding * (dy * (top[i][0] - bottom[i][0]) - dx * (top[i][1] - bottom[i][1]));
+      const light = .57 + .19 * Math.abs(dx) / (Math.hypot(dx, dy) || 1);
       return {points: [bottom[i], bottom[j], top[j], top[i]],
-        depth: (bottom[i][1] + bottom[j][1]) / 2,
-        color: Math.abs(bottom[j][0] - bottom[i][0]) > Math.abs(bottom[j][1] - bottom[i][1]) ? '#806b47' : '#66583e'};
-    });
+        edge: [r[i],r[j]], depth: (bottom[i][1] + bottom[j][1]) / 2, facing, color: shade(color, light)};
+    }).filter(face => face.facing < 0);
   });
   faces.sort((a, b) => a.depth - b.depth);
-  for (const face of faces) screenPolygon(face.points, face.color);
-  screenPolygon(tops[0], pool ? '#3d6664' : color, pool ? '#c5b181' : '#e6cf9c88', pool ? 1.5 : .55, tops.slice(1));
+  for (const face of faces) {
+    screenPolygon(face.points, face.color);
+    if (surface === 'wood' || surface === 'door') {
+      const [a,b] = face.edge, length = Math.hypot(b[0]-a[0],b[1]-a[1]);
+      if (length < .3) continue;
+      const at = (u,z) => project(a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u,z);
+      if (surface === 'wood') {
+        const count = Math.ceil(length/.16);
+        for (let i=1;i<count;i++) line(at(i/count,base+.035),at(i/count,base+height-.025),'#493a2c70',.65);
+      } else {
+        line(at(.5,base+.03),at(.5,base+height-.02),'#a9c5bf55',.65);
+        line(at(.61,base+height*.43),at(.61,base+height*.58),'#dfd4b1',1.2);
+      }
+    }
+  }
+  screenPolygon(tops[0], topFinish(tops[0], color), '#eedab45c', .55, tops.slice(1));
+  surfaceDetail(ring, base + height, surface);
+}
+function drawPool(object) {
+  const ring = object.outlines[0], water = object.water;
+  prism(ring, object.base, object.height, '#c3b18a');
+  if (!water) return;
+  const at = (u, v) => project(...[0, 1].map(i =>
+    (1-v) * ((1-u) * water[0][i] + u * water[1][i]) + v * ((1-u) * water[3][i] + u * water[2][i])), object.waterHeight);
+  const surface = water.map(p => project(...p, object.waterHeight));
+  const gradient = ctx.createLinearGradient(...at(0,0), ...at(1,1));
+  gradient.addColorStop(0, '#447e85'); gradient.addColorStop(.5, '#306777'); gradient.addColorStop(1, '#285363');
+  screenPolygon(surface, gradient, '#193e4e', .8);
+  ctx.save(); screenPolygon(surface); ctx.clip();
+  // Restrained, crisp surface glints; the entire inset remains opaque water.
+  for (let row = 0; row < 9; row++) {
+    ctx.beginPath();
+    for (let i = 0; i <= 28; i++) {
+      const u = .09 + i / 28 * .82, v = .1 + row * .1 + Math.sin(u * Math.PI * 3 + row * .8) * .012;
+      const p = at(u, v); i ? ctx.lineTo(...p) : ctx.moveTo(...p);
+    }
+    ctx.strokeStyle = row % 3 ? '#a4d9d51b' : '#b8e2de3d'; ctx.lineWidth = .6; ctx.stroke();
+  }
+  ctx.restore();
+  line(at(0,0),at(1,0),'#b1d2cba3',.7);
+  line(at(0,0),at(0,1),'#b1d2cb66',.7);
+}
+function drawObject(object, ring, color) {
+  if (object.parts) {
+    const parts = [...object.parts].sort((a,b) =>
+      Math.max(...a.ring.map(p=>project(...p,a.base)[1])) - Math.max(...b.ring.map(p=>project(...p,b.base)[1])));
+    for (const part of parts) prism(part.ring,part.base,part.height,part.color || color,[],part.surface);
+  } else prism(ring,object.base,object.height,color,object.holes,object.surface);
+  for (const tube of object.tubes || []) {
+    const path = tube.points.map(p=>project(...p));
+    const stroke = (color,weight,offset=0) => {
+      ctx.beginPath(); path.forEach((p,i)=>i ? ctx.lineTo(p[0],p[1]+offset) : ctx.moveTo(p[0],p[1]+offset));
+      ctx.strokeStyle=color; ctx.lineWidth=weight; ctx.stroke();
+    };
+    const width = Math.max(.9,tube.diameter*scale);
+    stroke('#263637',width+1); stroke(tube.color,width); stroke('#f1e4c088',Math.max(.35,width*.24),-.25);
+  }
 }
 function paintFloorPlan(selectedChambers) {
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   const frame = floorBoundary();
   prism(frame, -.25, .25, '#21343a');
   ctx.beginPath(); polygon(frame);
@@ -248,17 +341,23 @@ function paintFloorPlan(selectedChambers) {
   ctx.setLineDash([]);
   // Crisp registered silhouettes with shaded side faces replace the minimap.
   // Sort on the ground plane, then by elevation for objects on worktops.
-  const shapes = (map.plan?.objects || []).flatMap(object => object.outlines.map(ring => ({object, ring,
+  const shapes = (map.plan?.objects || []).filter(o=>!o.presentationHidden).flatMap(object => object.outlines.map(ring => ({object, ring,
     depth: Math.max(...ring.map(p => project(...p)[1])) + object.base * scale * .12})));
   shapes.sort((a, b) => a.depth - b.depth);
   for (const {object, ring} of shapes) {
     const shadow = r => r.map(p => { const q = project(...p); return [q[0] - 1.5, q[1] + 2]; });
     screenPolygon(shadow(ring), '#08182035', null, .6, (object.holes || []).map(shadow));
   }
-  const gold = ['#bba372', '#b29a6b', '#c1ac7d', '#ac986e'];
-  for (const {object, ring} of shapes) {
-    const color = object.kind === 'structure' ? '#93805a' : gold[Number(object.id.replace('n', '')) % gold.length];
-    prism(ring, object.base, object.height, color, object.kind === 'pool', object.holes);
+  // Draw the basin over sparse scan fragments, then equipment above its water.
+  // This also keeps low unlabelled fixtures from obscuring worktop details.
+  for (const {object, ring} of shapes.filter(s => s.object.kind === 'structure')) {
+    prism(ring, object.base, object.height, '#a28e68', object.holes);
+  }
+  for (const object of (map.plan?.objects || []).filter(o => o.kind === 'pool')) drawPool(object);
+  const gold = ['#c5ae80', '#baa278', '#ccb88c', '#bda983'];
+  for (const {object, ring} of shapes.filter(s => ['solid','wall'].includes(s.object.kind))) {
+    const color = object.kind === 'wall' ? '#bab49f' : gold[Number(object.id.replace('n', '')) % gold.length];
+    drawObject(object, ring, color);
   }
   ctx.restore();
   ctx.beginPath(); polygon(frame); ctx.strokeStyle = '#c3c7ab'; ctx.lineWidth = 1.1; ctx.stroke();
@@ -379,10 +478,10 @@ function resize() {
 function fitScale() {
   if (!map) return;
   const c = Math.cos(view.yaw), s = Math.sin(view.yaw);
-  const points = floorBoundary().map(([x,y]) => [x * c - y * s, (x * s + y * c) * (view.top ? 1 : .58)]);
+  const points = floorBoundary().map(([x,y]) => [x * c - y * s, (x * s + y * c) * floorTilt()]);
   const xs = points.map(p => p[0]), ys = points.map(p => p[1]);
   const midX = (Math.min(...xs) + Math.max(...xs)) / 2;
-  const midY = (Math.min(...ys) + Math.max(...ys)) / 2 / (view.top ? 1 : .58);
+  const midY = (Math.min(...ys) + Math.max(...ys)) / 2 / floorTilt();
   center = [midX * c + midY * s, -midX * s + midY * c];
   scale = Math.min((width - 95) / (Math.max(...xs) - Math.min(...xs)), (height - 190) / (Math.max(...ys) - Math.min(...ys))) * view.zoom;
 }
@@ -396,11 +495,11 @@ function updateViewMode() {
   document.querySelector('.map-mode').textContent = view.top ? 'Floor plan' : 'Spatial view';
   canvas.setAttribute('aria-label', view.top
     ? 'Lab floor plan with raised objects, Home, Ghaf, Spark, Space and Hive chambers, an entrance, and separate seminar and avatar rooms. Drag to pan, scroll to zoom. Arrow keys pan; Home resets the view.'
-    : 'Lab map in perspective. Drag to rotate, shift-drag to pan, scroll to zoom. Home resets the view.');
+    : 'Lab map in orthographic 3D with parallel opposite boundaries. Drag to rotate, shift-drag to pan, scroll to zoom. Home resets the view.');
 }
 $('top-view').onclick = () => {
   view.top = !view.top;
-  view.yaw = view.top ? planYaw() : planYaw() - .55;
+  view.yaw = view.top ? planYaw() : planYaw() - Math.PI / 4;
   view.panX = view.panY = 0;
   updateViewMode(); fitScale();
 };
@@ -433,7 +532,7 @@ new ResizeObserver(resize).observe(canvas);
 setInterval(updateStatus, 500);
 requestAnimationFrame(draw);
 try {
-  const response = await fetch('./map.json?v=layout-20261117'); if (!response.ok) throw new Error();
+  const response = await fetch('./map.json?v=water-polish-20261117'); if (!response.ok) throw new Error();
   map = await response.json(); if (!map.floor?.length) throw new Error();
   if (!snapshot?.scene) nodes = map.nodes;
   const xs = map.floor[0].map(p => p[0]), ys = map.floor[0].map(p => p[1]);
