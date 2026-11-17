@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#091c26">
   <meta name="description" content="Masar's live conversation and lab map.">
   <title>Masar · Live dashboard</title>
-  <link rel="stylesheet" href="./dashboard.css?v=display-views-20261117">
-  <script type="module" src="./dashboard.js?v=display-views-20261117"></script>
+  <link rel="stylesheet" href="./dashboard.css?v=token-controls-20261117">
+  <script type="module" src="./dashboard.js?v=token-controls-20261117"></script>
 </head>
 <body>
   <svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -47,6 +47,6 @@
       </div>
     </section>
   </main>
-  <dialog id="connection-dialog"><form id="connection-form"><div class="dialog-heading"><h2>Connect to Masar</h2><button type="button" id="close-dialog" aria-label="Close">×</button></div><p>Use the dashboard address on the robot’s network.</p><label for="endpoint">Dashboard WebSocket</label><input type="url" id="endpoint" placeholder="wss://robot.example/ws" required autocomplete="off" spellcheck="false"><label for="token">Access token</label><input type="password" id="token" autocomplete="off"><p class="form-note">The token stays in this tab. Audio plays on Masar.</p><p id="connection-error" role="alert"></p><div class="dialog-actions"><button type="button" id="disconnect">Disconnect</button><button type="submit" class="primary">Connect</button></div></form></dialog>
+  <dialog id="connection-dialog"><form id="connection-form"><div class="dialog-heading"><h2>Connect to Masar</h2><button type="button" id="close-dialog" aria-label="Close">×</button></div><p>Use the dashboard address on the robot’s network.</p><label for="endpoint">Dashboard WebSocket</label><input type="url" id="endpoint" placeholder="wss://robot.example/ws" required autocomplete="off" spellcheck="false"><label for="token">Access token</label><div class="token-field"><input type="password" id="token" autocomplete="off" autocapitalize="none" spellcheck="false"><button type="button" id="toggle-token" aria-label="Show access token" aria-controls="token" aria-pressed="false" title="Show access token"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="eye-slash" d="m3 3 18 18"/></svg></button></div><label class="remember-device" for="remember-device"><input type="checkbox" id="remember-device" checked><span>Remember this device</span></label><p class="form-note" id="remember-note">Reconnect automatically for 30 days. Disconnect forgets this device.</p><p id="connection-error" role="alert"></p><div class="dialog-actions"><button type="button" id="disconnect">Disconnect</button><button type="submit" class="primary">Connect</button></div></form></dialog>
 </body>
 </html>

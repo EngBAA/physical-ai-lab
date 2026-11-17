@@ -8,6 +8,41 @@ let lastRendered = '', renderedTurnId = null, poseTarget = null, poseFrom = null
 const view = {yaw: 0, zoom: 1, panX: 0, panY: 0, top: true};
 let width = 0, height = 0, scale = 1, center = [0, 0];
 let displayMode = 'split', displayScale = 1, mapLoading;
+const savedConnectionKey = 'masar-dashboard-connection-v1';
+const rememberDuration = 30 * 24 * 60 * 60 * 1000;
+let rememberConnection = false, credentialVerified = false, restoredEndpoint = '';
+
+function hideToken() {
+  $('token').type = 'password';
+  $('toggle-token').setAttribute('aria-label','Show access token');
+  $('toggle-token').setAttribute('aria-pressed','false');
+  $('toggle-token').title = 'Show access token';
+}
+function forgetConnection() {
+  try { localStorage.removeItem(savedConnectionKey); } catch { /* storage unavailable */ }
+}
+function savedConnection() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(savedConnectionKey) || 'null');
+    if (!saved) return null;
+    if (typeof saved.endpoint !== 'string' || typeof saved.token !== 'string' ||
+        !saved.token || saved.token.length > 4096 || !Number.isFinite(saved.expiresAt) ||
+        saved.expiresAt <= Date.now() || saved.expiresAt > Date.now() + rememberDuration + 60000) {
+      forgetConnection(); return null;
+    }
+    return saved;
+  } catch { forgetConnection(); return null; }
+}
+function rememberVerifiedConnection() {
+  if (!rememberConnection || !credentialVerified) return;
+  try {
+    localStorage.setItem(savedConnectionKey,JSON.stringify({endpoint,token:pairedToken,expiresAt:Date.now()+rememberDuration}));
+    $('remember-note').textContent = 'Reconnect automatically for 30 days. Disconnect forgets this device.';
+  } catch {
+    $('remember-note').textContent = 'This browser cannot save the connection. It will stay connected in this tab.';
+  }
+}
+
 
 function requestedView() {
   const mode = new URL(location.href).searchParams.get('view');
@@ -50,14 +85,14 @@ function connectedText(text, live = false) {
 }
 function errorText(text) { $('connection-error').textContent = text; }
 function disconnect() {
-  shouldReconnect = false;
+  shouldReconnect = false; credentialVerified = false;
   clearTimeout(retryTimer);
   if (socket) { socket.onclose = null; socket.close(); }
   socket = null;
   connectedText('Offline');
   updateStatus();
 }
-function connect(url, token) {
+function connect(url, token, remember = false) {
   disconnect();
   const parsed = new URL(url);
   if (!['ws:', 'wss:'].includes(parsed.protocol) || parsed.username || parsed.password || parsed.search || parsed.hash) {
@@ -67,7 +102,8 @@ function connect(url, token) {
     throw new Error('This HTTPS page needs a secure wss:// connection. You can also open the dashboard directly on the robot’s network.');
   }
   if (parsed.pathname !== '/ws') throw new Error('The dashboard endpoint must end in /ws.');
-  endpoint = parsed.href; pairedToken = token;
+  endpoint = parsed.href; pairedToken = token; rememberConnection = remember;
+  if (!remember) forgetConnection();
   try { localStorage.setItem('masar-dashboard-endpoint', endpoint); } catch { /* private browser */ }
   shouldReconnect = true;
   openSocket();
@@ -90,7 +126,9 @@ function openSocket() {
       if (followedLatest || !turns().some(t => t.id === selectedId)) selectedId = turns().at(-1)?.id || null;
       if (previousNewest !== turns().at(-1)?.id && followedLatest) inspected = null;
       if (!authenticated) {
-        authenticated = true; errorText(''); $('connection-dialog').close();
+        authenticated = true; credentialVerified = true;
+        rememberVerifiedConnection(); hideToken();
+        errorText(''); $('connection-dialog').close();
         $('open-connection').firstChild.textContent = 'Connected ';
       }
       if (data.pose && data.pose.at !== poseTarget?.at) {
@@ -105,7 +143,8 @@ function openSocket() {
     connectedText('Disconnected'); updateStatus();
     $('open-connection').firstChild.textContent = 'Connect robot ';
     if (event.code === 1008) {
-      shouldReconnect = false;
+      shouldReconnect = false; credentialVerified = false;
+      forgetConnection(); hideToken();
       errorText('Connection refused. Check the access token.');
       $('connection-dialog').showModal();
     } else if (shouldReconnect) {
@@ -557,11 +596,42 @@ canvas.onkeydown = event => {
 $('previous').onclick = () => {selectedId = turns()[turns().indexOf(selectedTurn()) - 1]?.id; inspected = null; renderConversation();};
 $('next').onclick = () => {selectedId = turns()[turns().indexOf(selectedTurn()) + 1]?.id; inspected = null; renderConversation();};
 $('open-connection').onclick = () => $('connection-dialog').showModal();
-$('close-dialog').onclick = () => $('connection-dialog').close();
-$('disconnect').onclick = () => {disconnect(); pairedToken = ''; $('token').value = ''; $('connection-dialog').close();};
+$('close-dialog').onclick = () => {hideToken(); $('connection-dialog').close();};
+$('disconnect').onclick = () => {
+  forgetConnection(); disconnect(); pairedToken = ''; restoredEndpoint = '';
+  $('token').value = ''; hideToken(); $('connection-dialog').close();
+  $('open-connection').firstChild.textContent = 'Connect robot ';
+};
+$('toggle-token').onclick = () => {
+  const visible = $('token').type === 'password';
+  $('token').type = visible ? 'text' : 'password';
+  const text = visible ? 'Hide access token' : 'Show access token';
+  $('toggle-token').setAttribute('aria-label',text);
+  $('toggle-token').setAttribute('aria-pressed',String(visible));
+  $('toggle-token').title = text;
+};
+$('connection-dialog').addEventListener('close',hideToken);
+$('connection-dialog').addEventListener('cancel',hideToken);
+document.addEventListener('visibilitychange',() => { if (document.hidden) hideToken(); });
+addEventListener('storage',event => {
+  if (event.storageArea === localStorage && (event.key === savedConnectionKey || event.key === null) && event.newValue === null) {
+    // Another tab forgot this connection; don't save it again on a retry.
+    rememberConnection = false; $('remember-device').checked = false;
+  }
+});
+$('remember-device').onchange = () => {
+  rememberConnection = $('remember-device').checked;
+  if (rememberConnection) rememberVerifiedConnection(); else forgetConnection();
+};
+$('endpoint').addEventListener('input',() => {
+  // Never carry a restored credential into a different endpoint automatically.
+  if (restoredEndpoint && $('endpoint').value.trim() !== restoredEndpoint) {
+    $('token').value = ''; restoredEndpoint = ''; hideToken();
+  }
+});
 $('connection-form').onsubmit = event => {
   event.preventDefault(); errorText('');
-  try {connect($('endpoint').value.trim(), $('token').value);} catch (error) {errorText(error.message);}
+  try {connect($('endpoint').value.trim(), $('token').value.trim(), $('remember-device').checked);} catch (error) {errorText(error.message);}
 };
 try { $('endpoint').value = localStorage.getItem('masar-dashboard-endpoint') || ''; } catch { /* private browser */ }
 for (const link of document.querySelectorAll('.view-switch a')) {
@@ -611,7 +681,23 @@ function loadMap() {
 }
 setDisplay(requestedView());
 // The local service and its HTTPS proxy serve this page and feed together.
-// Wait for the access token before connecting; never send an empty credential.
+// First-time browsers still authenticate; no token is embedded in the site.
 if (!location.hostname.endsWith('github.io') && !$('endpoint').value) {
   $('endpoint').value = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
+}
+
+const remembered = savedConnection();
+if (remembered) {
+  // Credentials are scoped to this browser origin and their exact WS endpoint.
+  // Validation in connect() also rejects insecure endpoints on HTTPS pages.
+  try {
+    $('endpoint').value = remembered.endpoint;
+    $('token').value = remembered.token;
+    $('remember-device').checked = true;
+    restoredEndpoint = remembered.endpoint;
+    connect(remembered.endpoint,remembered.token,true);
+  } catch {
+    forgetConnection(); $('token').value = ''; restoredEndpoint = '';
+    errorText('The saved connection is no longer valid. Connect again.');
+  }
 }
