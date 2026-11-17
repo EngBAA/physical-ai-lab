@@ -308,15 +308,7 @@ function drawObject(object, ring, color) {
       Math.max(...a.ring.map(p=>project(...p,a.base)[1])) - Math.max(...b.ring.map(p=>project(...p,b.base)[1])));
     for (const part of parts) prism(part.ring,part.base,part.height,part.color || color,[],part.surface);
   } else prism(ring,object.base,object.height,color,object.holes,object.surface);
-  for (const tube of object.tubes || []) {
-    const path = tube.points.map(p=>project(...p));
-    const stroke = (color,weight,offset=0) => {
-      ctx.beginPath(); path.forEach((p,i)=>i ? ctx.lineTo(p[0],p[1]+offset) : ctx.moveTo(p[0],p[1]+offset));
-      ctx.strokeStyle=color; ctx.lineWidth=weight; ctx.stroke();
-    };
-    const width = Math.max(.9,tube.diameter*scale);
-    stroke('#263637',width+1); stroke(tube.color,width); stroke('#f1e4c088',Math.max(.35,width*.24),-.25);
-  }
+
 }
 function paintFloorPlan(selectedChambers) {
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
@@ -532,7 +524,7 @@ new ResizeObserver(resize).observe(canvas);
 setInterval(updateStatus, 500);
 requestAnimationFrame(draw);
 try {
-  const response = await fetch('./map.json?v=water-polish-20261117'); if (!response.ok) throw new Error();
+  const response = await fetch('./map.json?v=map-refined-20261117'); if (!response.ok) throw new Error();
   map = await response.json(); if (!map.floor?.length) throw new Error();
   if (!snapshot?.scene) nodes = map.nodes;
   const xs = map.floor[0].map(p => p[0]), ys = map.floor[0].map(p => p[1]);
